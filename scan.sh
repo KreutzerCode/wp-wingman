@@ -12,7 +12,29 @@ __        ______   __        _____ _   _  ____ __  __    _    _   _
                             \e[1;34m  @kreutzercode 
 "
 
-pluginNameList=("sucuri-scanner" "wordfence" "malcare-security" "better-wp-security" "all-in-one-wp-security-and-firewall" "defender-security" "jetpack" "wp-security-audit-log" "block-bad-queries" "security-ninja")
+pluginNameList=()
+
+function fetch_security_plugins() {
+    echo -e "\e[1;33mUpdating PlayBook...\e[0m"
+    local webpage_url="https://wordpress.org/plugins/tags/security/"
+    
+    local html_content=$(curl -s "$webpage_url")
+    local lastPluginPageUrl=$(echo "$html_content" | grep -o '<a[^>]*class="page-numbers"[^>]*>[^<]*<\/a>' | awk 'NR==2 { match($0, /href="([^"]*)"/); url = substr($0, RSTART+6, RLENGTH-7); gsub(/\/$/, "", url); print url }')
+    local lastPluginPageNumber="${lastPluginPageUrl##*/}"
+    mapfile -t firstPagePluginNames <<< "$(echo "$html_content" | grep -o '<h3[^>]*class="entry-title"[^>]*>.*<\/h3>' | sed -n -e 's/.*<a[^>]*href="\([^"]*\)".*/\1/p' | sed 's:.*/\([^/]*\)/[^/]*$:\1:')"
+    pluginNameList=("${firstPagePluginNames[@]}")
+
+    for ((i = 2; i <= 3; i++)); do
+        page_suffix="/page/$i"
+        sub_page_url="${webpage_url%/}${page_suffix}/"
+        local sub_page_html_content=$(curl -s "$sub_page_url")
+        mapfile -t pagePluginNames <<< "$(echo "$sub_page_html_content" | grep -o '<h3[^>]*class="entry-title"[^>]*>.*<\/h3>' | sed -n -e 's/.*<a[^>]*href="\([^"]*\)".*/\1/p' | sed 's:.*/\([^/]*\)/[^/]*$:\1:')"
+        pluginNameList=("${pluginNameList[@]}" "${pagePluginNames[@]}")
+    done
+
+    array_length=${#pluginNameList[@]}
+    echo -e "\e[1;32mDone. $array_length found.\e[0m"
+}
 
 # Help
 helpMenu(){
@@ -40,10 +62,10 @@ guardEnum(){
     for pluginName in "${pluginNameList[@]}"; do
         result=$(testUrl "$url/$pluginsPrefix/$pluginName/$pluginSuffix")
         if [ "$result" == "true" ]; then
-            echo -e "\e[1;31m$pluginName detected: $result\e[0m"
+            echo -e "\e[1;31m$pluginName\e[0m"
             allClear=false
         else
-            echo -e "\e[1;34m$pluginName detected: $result\e[0m"
+            echo -e "\e[1;34m$pluginName\e[0m"
         fi
     done
 
@@ -65,6 +87,7 @@ while [[ $# -gt 0 ]]; do
             result=$(testUrl "$WP_URL/wp-login.php")
             if [ "$result" == "true" ]; then
                 echo -e "\e[1;32mWordPress site detected: $WP_URL\e[0m"
+                fetch_security_plugins
                 guardEnum $WP_URL
             else
                 echo -e "\e[1;31mThe URL is not a WordPress site.\e[0m"
