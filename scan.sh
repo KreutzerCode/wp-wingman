@@ -88,6 +88,14 @@ while [[ $# -gt 0 ]]; do
             if [ "$result" == "true" ]; then
                 echo -e "\e[1;32mWordPress site detected: $WP_URL\e[0m"
                 fetch_security_plugins
+
+                echo -e "\e[1;33mDo you want me to start? (y/n)\e[0m"
+                read answer
+                if [ "$answer" != "y" ]; then
+                    echo -e "\e[1;32mPuuh, okey bye.\e[0m\n"
+                    exit
+                fi
+
                 guardEnum $WP_URL
             else
                 echo -e "\e[1;31mThe URL is not a WordPress site.\e[0m"
