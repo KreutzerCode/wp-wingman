@@ -14,11 +14,26 @@ __        ______   __        _____ _   _  ____ __  __    _    _   _
 
 pluginNameList=()
 
+user_agents=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+            "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0"
+            "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0"
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:57.0) Gecko/20100101 Firefox/57.0"
+            "Mozilla/5.0 (X11; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0"
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Trident/7.0; AS; rv:11.0) like Gecko"
+            "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko"
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109"
+            "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109"
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109"
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109")
+
 function fetch_security_plugins() {
     echo -e "\e[1;33mUpdating PlayBook...\e[0m"
     local webpage_url="https://wordpress.org/plugins/tags/security/"
-    
-    local html_content=$(curl -s "$webpage_url")
+
+    local html_content=$(curl -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "$webpage_url")
     local lastPluginPageUrl=$(echo "$html_content" | grep -o '<a[^>]*class="page-numbers"[^>]*>[^<]*<\/a>' | awk 'NR==2 { match($0, /href="([^"]*)"/); url = substr($0, RSTART+6, RLENGTH-7); gsub(/\/$/, "", url); print url }')
     local lastPluginPageNumber="${lastPluginPageUrl##*/}"
     mapfile -t firstPagePluginNames <<< "$(echo "$html_content" | grep -o '<h3[^>]*class="entry-title"[^>]*>.*<\/h3>' | sed -n -e 's/.*<a[^>]*href="\([^"]*\)".*/\1/p' | sed 's:.*/\([^/]*\)/[^/]*$:\1:')"
@@ -27,9 +42,12 @@ function fetch_security_plugins() {
     for ((i = 2; i <= 3; i++)); do
         page_suffix="/page/$i"
         sub_page_url="${webpage_url%/}${page_suffix}/"
-        local sub_page_html_content=$(curl -s "$sub_page_url")
+        local sub_page_html_content=$(curl -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "$sub_page_url")
         mapfile -t pagePluginNames <<< "$(echo "$sub_page_html_content" | grep -o '<h3[^>]*class="entry-title"[^>]*>.*<\/h3>' | sed -n -e 's/.*<a[^>]*href="\([^"]*\)".*/\1/p' | sed 's:.*/\([^/]*\)/[^/]*$:\1:')"
         pluginNameList=("${pluginNameList[@]}" "${pagePluginNames[@]}")
+
+        # Introduce a random delay between 1 and 5 seconds TODO add ass script argument <3
+        sleep $(($RANDOM % 5 + 1))
     done
 
     array_length=${#pluginNameList[@]}
@@ -44,7 +62,7 @@ helpMenu(){
 
 testUrl() {
     local url=$1 
-    CHECK_URL=$(curl -o /dev/null --silent --head --write-out '%{http_code}' "$url")
+    CHECK_URL=$(curl -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" -o /dev/null --head --write-out '%{http_code}' "$url")
     if [ "$CHECK_URL" -eq 200 ]; then
         echo "true"
     else
@@ -67,6 +85,9 @@ guardEnum(){
         else
             echo -e "\e[1;34m$pluginName\e[0m"
         fi
+
+        # Introduce a random delay between 1 and 5 seconds TODO add ass script argument <3
+        sleep $(($RANDOM % 5 + 1))
     done
 
     if [ "$allClear" == "true" ]; then
