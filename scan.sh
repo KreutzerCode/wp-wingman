@@ -29,30 +29,33 @@ user_agents=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109"
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109")
 
-function fetch_security_plugins() {
+function fetch_security_plugins(){
     echo -e "\e[1;33mUpdating PlayBook...\e[0m"
-    local webpage_url="https://wordpress.org/plugins/tags/security/"
+    local api_url="https://api.wordpress.org/plugins/info/1.2/"
+    local response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=security")
+    
+    local page=2
+    local total_pages=$(echo "$response" | jq -r '.info.pages')
+    local plugin_names=($(echo "$response" | jq -r '.plugins[].slug'))
 
-    local html_content=$(curl -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "$webpage_url")
-    local lastPluginPageUrl=$(echo "$html_content" | grep -o '<a[^>]*class="page-numbers"[^>]*>[^<]*<\/a>' | awk 'NR==2 { match($0, /href="([^"]*)"/); url = substr($0, RSTART+6, RLENGTH-7); gsub(/\/$/, "", url); print url }')
-    local lastPluginPageNumber="${lastPluginPageUrl##*/}"
-    mapfile -t firstPagePluginNames <<< "$(echo "$html_content" | grep -o '<h3[^>]*class="entry-title"[^>]*>.*<\/h3>' | sed -n -e 's/.*<a[^>]*href="\([^"]*\)".*/\1/p' | sed 's:.*/\([^/]*\)/[^/]*$:\1:')"
-    pluginNameList=("${firstPagePluginNames[@]}")
+    while [ "$page" -le "$total_pages" ]; do
+        response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=security&request[page]=${page}")
+        names_on_page=($(echo "$response" | jq -r '.plugins[].slug'))
+        plugin_names+=("${names_on_page[@]}")
 
-    for ((i = 2; i <= 3; i++)); do
-        page_suffix="/page/$i"
-        sub_page_url="${webpage_url%/}${page_suffix}/"
-        local sub_page_html_content=$(curl -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "$sub_page_url")
-        mapfile -t pagePluginNames <<< "$(echo "$sub_page_html_content" | grep -o '<h3[^>]*class="entry-title"[^>]*>.*<\/h3>' | sed -n -e 's/.*<a[^>]*href="\([^"]*\)".*/\1/p' | sed 's:.*/\([^/]*\)/[^/]*$:\1:')"
-        pluginNameList=("${pluginNameList[@]}" "${pagePluginNames[@]}")
-
-        # Introduce a random delay between 1 and 5 seconds TODO add ass script argument <3
-        sleep $(($RANDOM % 5 + 1))
+        ((page++))
     done
 
+    pluginNameList=("${plugin_names[@]}")
     array_length=${#pluginNameList[@]}
     echo -e "\e[1;32mDone. $array_length found.\e[0m"
-}
+
+    # Display the security-related plugin names
+    #echo "Security-Related Plugin Names:"
+    #for name in "${plugin_names[@]}"; do
+    #    echo "$name"
+    #done
+} 
 
 # Help
 helpMenu(){
@@ -83,11 +86,12 @@ guardEnum(){
             echo -e "\e[1;31m$pluginName\e[0m"
             allClear=false
         else
+            #echo -ne "\e[1;34m$pluginName\e[0m \033[0K\r"
             echo -e "\e[1;34m$pluginName\e[0m"
         fi
 
-        # Introduce a random delay between 1 and 5 seconds TODO add ass script argument <3
-        sleep $(($RANDOM % 5 + 1))
+        # Introduce a random delay between 0 and 3 seconds TODO add ass script argument <3
+        sleep $(($RANDOM % 4))
     done
 
     if [ "$allClear" == "true" ]; then
