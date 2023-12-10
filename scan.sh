@@ -13,7 +13,8 @@ __        ______   __        _____ _   _  ____ __  __    _    _   _
 "
 
 pluginNameList=()
-
+rateLimit=2
+targetPluginTag="security"
 user_agents=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
             "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
@@ -29,17 +30,17 @@ user_agents=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109"
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109")
 
-function fetch_security_plugins(){
+function fetch_plugins_by_tag(){
     echo -e "\e[1;33mUpdating PlayBook...\e[0m"
     local api_url="https://api.wordpress.org/plugins/info/1.2/"
-    local response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=security")
+    local response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=$targetPluginTag")
     
     local page=2
     local total_pages=$(echo "$response" | jq -r '.info.pages')
     local plugin_names=($(echo "$response" | jq -r '.plugins[].slug'))
 
     while [ "$page" -le "$total_pages" ]; do
-        response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=security&request[page]=${page}")
+        response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=$targetPluginTag&request[page]=${page}")
         names_on_page=($(echo "$response" | jq -r '.plugins[].slug'))
         plugin_names+=("${names_on_page[@]}")
 
@@ -50,18 +51,18 @@ function fetch_security_plugins(){
     array_length=${#pluginNameList[@]}
     echo -e "\e[1;32mDone. $array_length found.\e[0m"
 
-    # Display the security-related plugin names
-    #echo "Security-Related Plugin Names:"
+    # Display the plugin names
+    #echo "Plugin Names:"
     #for name in "${plugin_names[@]}"; do
     #    echo "$name"
     #done
 } 
 
-# Help
 helpMenu(){
-    echo -e "\e[1;33mArguments:\n\t-u\t\twordpress url\n\t\n"
-    echo -e "Send over Wingman:\n./scan.sh -u www.example.com\n \e[1;32m"
+    echo -e "\e[1;33mArguments:\n\t\e[1;31mrequired:\e[1;33m -u\t\twordpress url\e[1;33m\n\t\e[1;34moptional:\e[1;33m -t\t\twordpress plugin tag (default securtiy)\t\n\t\e[1;34moptional:\e[1;33m -r\t\trate limit on target (default 0-2s)\n\t\e[1;33m"
+    echo -e "Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \e[1;32m"
 }
+
 
 testUrl() {
     local url=$1 
@@ -90,18 +91,43 @@ guardEnum(){
             echo -e "\e[1;34m$pluginName\e[0m"
         fi
 
-        # Introduce a random delay between 0 and 3 seconds TODO add ass script argument <3
-        sleep $(($RANDOM % 4))
+        # Introduce a ratelimit between 0 and X seconds
+        # Add one to get desired value in sek 4 = 3
+        sleep $(($RANDOM % $rateLimit + 1))
     done
 
     if [ "$allClear" == "true" ]; then
-        echo -e "\n\e[1;32mLooking good, have fun.\e[0m\n"
+        echo -e "\n\e[1;32mNothing found, good luck.\e[0m\n"
     else
-        echo -e "\n\e[1;31mNot locking to good mate, take care.\e[0m\n"
+        echo -e "\n\e[1;31mFound something mate, good luck.\e[0m\n"
     fi
 
     exit
 }
+
+startWingmanJob(){
+    local WP_URL=$1
+    result=$(testUrl "$WP_URL/wp-login.php")
+    if [ "$result" == "true" ]; then
+        echo -e "\e[1;32mWordPress site detected: $WP_URL\e[0m"
+        fetch_plugins_by_tag
+
+        echo -e "\e[1;33mDo you want me to start? (y/n)\e[0m"
+        read answer
+        if [ "$answer" != "y" ]; then
+            echo -e "\e[1;32mPuuh, okey bye.\e[0m\n"
+            exit
+        fi
+
+        guardEnum $WP_URL
+    else
+        echo -e "\e[1;31mThe URL is not a WordPress site.\e[0m"
+        echo -e "\e[1;31m$WP_URL\e[0m"
+        exit 1
+    fi
+} 
+
+args=()
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -109,33 +135,57 @@ while [[ $# -gt 0 ]]; do
         -u)
             shift
             WP_URL="$1"
-            result=$(testUrl "$WP_URL/wp-login.php")
-            if [ "$result" == "true" ]; then
-                echo -e "\e[1;32mWordPress site detected: $WP_URL\e[0m"
-                fetch_security_plugins
-
-                echo -e "\e[1;33mDo you want me to start? (y/n)\e[0m"
-                read answer
-                if [ "$answer" != "y" ]; then
-                    echo -e "\e[1;32mPuuh, okey bye.\e[0m\n"
-                    exit
-                fi
-
-                guardEnum $WP_URL
-            else
-                echo -e "\e[1;31mThe URL is not a WordPress site.\e[0m"
-                echo -e "\e[1;31m$WP_URL\e[0m"
-                exit 1
-            fi
+            args+=("-u" "$WP_URL")
+            ;;
+        -r)
+            shift
+            R_VALUE="$1"
+            args+=("-r" "$R_VALUE")
+            ;;
+        -t)
+            shift
+            T_VALUE="$1"
+            args+=("-t" "$T_VALUE")
             ;;
         -*)
             echo -e "\n\e[1;31mInvalid argument: $1\e[0m\n"
+            helpMenu
+            exit 1
             ;;
     esac
     shift
 done
 
-# Check if URL is provided
-if [ -z "$WP_URL" ]; then
+if [ ${#args[@]} -eq 0 ]; then
     helpMenu
+    exit 1
 fi
+
+# Check if -u argument is missing
+if [ -z "$WP_URL" ]; then
+    echo -e "\n\e[1;31mError: Missing -u argument\e[0m\n"
+    helpMenu
+    exit 1
+fi
+
+# move the -u argument to the end so the configuration takes place first
+u_index=$(printf '%s\n' "${args[@]}" | grep -n '^\-u' | cut -f1 -d:)
+[ -n "$u_index" ] && args=("${args[@]:0:$u_index-1}" "${args[@]:$u_index+1}" "-u" "$WP_URL")
+
+for ((i=0; i<${#args[@]}; i+=2)); do
+    option="${args[i]}"
+    value="${args[i+1]}"
+    if [ "$option" == "-r" ]; then
+        rateLimit="$value"
+        echo -e "\e[1;32mSet rate limit to: $value\e[0m"
+    fi
+
+    if [ "$option" == "-t" ]; then
+        targetPluginTag="$value"
+        echo -e "\e[1;32mSet plugin tag to: $value\e[0m"
+    fi
+
+    if [ "$option" == "-u" ]; then
+        startWingmanJob "$value"
+    fi
+done
