@@ -1,25 +1,32 @@
-<h1 align="center">
-  WP Wingman
-  <br>
-</h1>
+<div align="center">
 
-<h4 align="center">The helper we all need some times.</h4>
+![wp-wingman](./img/logo.png)
 
-<hr>
+</div>
 
-### WP Wingman is a small helper that lets you now if any popular security plugins are installed on YOUR wordpress site.
+<p align="center">
+The WordPress Plugin Scanner designed for identifying any plugins on WordPress sites.
+</p>
 
-<br>
+## Features
 
-### Functionality
+- Fetches plugin names based on a specified tag from the WordPress Plugins API.
+- Supports rate limiting to avoid excessive requests to the target site.
+- Checks for the existence of each plugin on the target WordPress site.
+- Provides user-friendly prompts and outputs for easy interaction.
 
-The Wingman uses a static list of known security plugins and checks if the plugin directory of that plugin contains a readme.txt and reports its findings back to you.
+## Functionality
 
-<br>
+The script utilizes the WordPress Plugins API to fetch plugin names based on a specified tag. The user can provide a WordPress site URL, an optional rate limit for requests, and an optional plugin tag. The script then checks for the existence of each plugin by attempting to access its readme.txt file on the target system.
 
-### Documentation
+## Requirements
 
-### install
+Ensure that you have the following necessary dependencies installed:
+
+- curl
+- jq
+
+## Install
 
 ```yaml
 git clone https://github.com/KreutzerCode/wp-wingman.git
@@ -28,7 +35,7 @@ chmod -R 777 scan.sh
 ./scan.sh
 ```
 
-#### Usage
+## Usage
 
 ```yaml
 ┌──(you㉿kali)-[~/Desktop/wp-wingman]
@@ -41,11 +48,19 @@ __        ______   __        _____ _   _  ____ __  __    _    _   _
 
                             \e[1;34m  @kreutzercode
 Arguments:
-        -u              wordpress url
+        required: -u              wordpress url
+        optional: -t              wordpress plugin tag (default securtiy)
+        optional: -r              rate limit on target (default 0-2s)
 
 Send over Wingman:
-./scan.sh -u www.example.com
+./scan.sh -u www.example.com -r 5 -t newsletter
 
 ```
 
-<br>
+Happy scanning!
+
+# TODO
+
+- selfupdating line of currently checked plugin slug
+- summary of found plugins at the end
+- add maniac mode
