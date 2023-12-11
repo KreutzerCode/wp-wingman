@@ -61,7 +61,6 @@ Happy scanning!
 
 # TODO
 
-- selfupdating line of currently checked plugin slug
 - summary of found plugins at the end
 - overdrive mode
 - local storage file for tags with use or update

@@ -12,12 +12,6 @@ __        ______   __        _____ _   _  ____ __  __    _    _   _
                             \e[1;34m  @kreutzercode 
 "
 
-pluginNameList=()
-pluginNameListLength=0
-max_string_length=0
-currentPluginInCheckIndex=0
-rateLimit=1
-targetPluginTag="security"
 user_agents=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
             "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
@@ -32,29 +26,37 @@ user_agents=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
             "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109"
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109"
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109")
+plugin_name_list=()
+plugin_name_list_length=0
+max_string_length=0
+current_plugin_in_check_index=0
+rate_limit=1
+target_plugin_Tag="security"
+no_plugin_found=true
+wp_url=""
 
-function fetch_plugins_by_tag(){
+function FetchPluginsByTag(){
     echo -e "\e[1;33mUpdating PlayBook...\e[0m"
     local api_url="https://api.wordpress.org/plugins/info/1.2/"
-    local response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=$targetPluginTag")
+    local response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=$target_plugin_tag")
     
     local page=2
     local total_pages=$(echo "$response" | jq -r '.info.pages')
     local plugin_names=($(echo "$response" | jq -r '.plugins[].slug'))
 
     while [ "$page" -le "$total_pages" ]; do
-        response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=$targetPluginTag&request[page]=${page}")
+        response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=$target_plugin_tag&request[page]=${page}")
         names_on_page=($(echo "$response" | jq -r '.plugins[].slug'))
         plugin_names+=("${names_on_page[@]}")
 
         ((page++))
     done
 
-    pluginNameList=("${plugin_names[@]}")
-    pluginNameListLength=${#pluginNameList[@]}
-    max_string_length=$(printf "%s\n" "${pluginNameList[@]}" | awk '{ if (length > x) x = length } END { print x }')
+    plugin_name_list=("${plugin_names[@]}")
+    plugin_name_list_length=${#plugin_name_list[@]}
+    max_string_length=$(printf "%s\n" "${plugin_name_list[@]}" | awk '{ if (length > x) x = length } END { print x }')
 
-    echo -e "\e[1;32mDone. $pluginNameListLength found.\e[0m"
+    echo -e "\e[1;32mDone. $plugin_name_list_length found.\e[0m"
 
     # Display the plugin names
     #echo "Plugin Names:"
@@ -63,53 +65,51 @@ function fetch_plugins_by_tag(){
     #done
 } 
 
-helpMenu(){
+function HelpMenu(){
     echo -e "\e[1;33mArguments:\n\t\e[1;31mrequired:\e[1;33m -u\t\twordpress url\e[1;33m\n\t\e[1;34moptional:\e[1;33m -t\t\twordpress plugin tag (default securtiy)\t\n\t\e[1;34moptional:\e[1;33m -r\t\trate limit on target (default 0-1s)\n\t\e[1;33m"
     echo -e "Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \e[1;32m"
 }
 
-testUrl() {
+function TestUrlForAvailability() {
     local url=$1 
-    CHECK_URL=$(curl -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" -o /dev/null --head --write-out '%{http_code}' "$url")
-    if [ "$CHECK_URL" -eq 200 ]; then
+    local check_url=$(curl -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" -o /dev/null --head --write-out '%{http_code}' "$url")
+    if [ "$check_url" -eq 200 ]; then
         echo "true"
     else
         echo "false"
     fi
 }
 
-printFindings(){
-    local isFound=$1
-    local pluginName=$2
+function PrintFindings(){
+    local is_found=$1
+    local plugin_name=$2
 
-    if [ "$isFound" == "true" ]; then
-       echo -e "\e[1;31m$(printf "%-${max_string_length}s" "$pluginName")\e[0m \e[1;31m[found]\e[0m"
-       allClear=false
+    if [ "$is_found" == "true" ]; then
+       echo -e "\e[1;31m$(printf "%-${max_string_length}s" "$plugin_name")\e[0m \e[1;31m[found]\e[0m"
+       no_plugin_found=false
     else
-        printf "\e[1;34m%-${max_string_length}s\e[0m \e[1;34m[ok][${currentPluginInCheckIndex} / ${pluginNameListLength}]\e[0m\r" "$pluginName"
+        printf "\e[1;34m%-${max_string_length}s\e[0m \e[1;34m[ok][${current_plugin_in_check_index} / ${plugin_name_list_length}]\e[0m\r" "$plugin_name"
     fi
 } 
 
-guardEnum(){
+function CheckPluginsAvailablity(){
     local url=$1
-    local allClear=true
     echo -e "\n\e[1;33m[+] Let me check this for you:\e[0m\n"
-    pluginsPrefix="wp-content/plugins"
-    pluginSuffix="readme.txt"
+    local plugins_prefix="wp-content/plugins"
+    local plugin_suffix="readme.txt"
 
-    for pluginName in "${pluginNameList[@]}"; do
-        result=$(testUrl "$url/$pluginsPrefix/$pluginName/$pluginSuffix")
+    for plugin_name in "${plugin_name_list[@]}"; do
+        result=$(TestUrlForAvailability "$url/$plugins_prefix/$plugin_name/$plugin_suffix")
         
-        printFindings "$result" "$pluginName"
-        ((currentPluginInCheckIndex++))
+        PrintFindings "$result" "$plugin_name"
+        ((current_plugin_in_check_index++))
 
-
-        # Introduce a ratelimit between 0 and X seconds
+        # Introduce a rate_limit between 0 and X seconds
         # Add one to get desired value in sek 4 = 3
-        sleep $(($RANDOM % $rateLimit + 1))
+        sleep $(($RANDOM % $rate_limit + 1))
     done
 
-    if [ "$allClear" == "true" ]; then
+    if [ "$no_plugin_found" == "true" ]; then
         echo -e "\n\e[1;32mNothing found, good luck.\e[0m\n"
     else
         echo -e "\n\e[1;31mFound something mate, good luck.\e[0m\n"
@@ -118,12 +118,11 @@ guardEnum(){
     exit
 }
 
-startWingmanJob(){
-    local WP_URL=$1
-    result=$(testUrl "$WP_URL/wp-login.php")
+function StartWingmanJob(){
+    result=$(TestUrlForAvailability "$wp_url/wp-login.php")
     if [ "$result" == "true" ]; then
-        echo -e "\e[1;32mWordPress site detected: $WP_URL\e[0m"
-        fetch_plugins_by_tag
+        echo -e "\e[1;32mWordPress site detected: $wp_url\e[0m"
+        FetchPluginsByTag
 
         echo -e "\e[1;33mDo you want me to start? (y/n)\e[0m"
         read answer
@@ -132,10 +131,10 @@ startWingmanJob(){
             exit
         fi
 
-        guardEnum $WP_URL
+        CheckPluginsAvailablity $wp_url
     else
         echo -e "\e[1;31mThe URL is not a WordPress site.\e[0m"
-        echo -e "\e[1;31m$WP_URL\e[0m"
+        echo -e "\e[1;31m$wp_url\e[0m"
         exit 1
     fi
 } 
@@ -147,22 +146,22 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         -u)
             shift
-            WP_URL="$1"
-            args+=("-u" "$WP_URL")
+            wp_url="$1"
+            args+=("-u" "$wp_url")
             ;;
         -r)
             shift
-            R_VALUE="$1"
-            args+=("-r" "$R_VALUE")
+            r_value="$1"
+            args+=("-r" "$r_value")
             ;;
         -t)
             shift
-            T_VALUE="$1"
-            args+=("-t" "$T_VALUE")
+            t_value="$1"
+            args+=("-t" "$t_value")
             ;;
         -*)
             echo -e "\n\e[1;31mInvalid argument: $1\e[0m\n"
-            helpMenu
+            HelpMenu
             exit 1
             ;;
     esac
@@ -170,35 +169,35 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ ${#args[@]} -eq 0 ]; then
-    helpMenu
+    HelpMenu
     exit 1
 fi
 
 # Check if -u argument is missing
-if [ -z "$WP_URL" ]; then
+if [ -z "$wp_url" ]; then
     echo -e "\n\e[1;31mError: Missing -u argument\e[0m\n"
-    helpMenu
+    HelpMenu
     exit 1
 fi
 
 # move the -u argument to the end so the configuration takes place first
 u_index=$(printf '%s\n' "${args[@]}" | grep -n '^\-u' | cut -f1 -d:)
-[ -n "$u_index" ] && args=("${args[@]:0:$u_index-1}" "${args[@]:$u_index+1}" "-u" "$WP_URL")
+[ -n "$u_index" ] && args=("${args[@]:0:$u_index-1}" "${args[@]:$u_index+1}" "-u" "$wp_url")
 
 for ((i=0; i<${#args[@]}; i+=2)); do
     option="${args[i]}"
     value="${args[i+1]}"
     if [ "$option" == "-r" ]; then
-        rateLimit="$value"
+        rate_limit="$value"
         echo -e "\e[1;32mSet rate limit to: $value\e[0m"
     fi
 
     if [ "$option" == "-t" ]; then
-        targetPluginTag="$value"
+        target_plugin_tag="$value"
         echo -e "\e[1;32mSet plugin tag to: $value\e[0m"
     fi
 
     if [ "$option" == "-u" ]; then
-        startWingmanJob "$value"
+        StartWingmanJob
     fi
 done
