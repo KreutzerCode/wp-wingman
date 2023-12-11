@@ -31,14 +31,14 @@ plugin_name_list_length=0
 max_string_length=0
 current_plugin_in_check_index=0
 rate_limit=1
-target_plugin_Tag="security"
+target_plugin_tag="security"
 wp_url=""
 plugins_found_on_target=()
 overdrive_active=false
 
 function FetchPluginsByTag() {
     echo -e "\e[1;33mUpdating PlayBook...\e[0m"
-    local target_api_endpoint="https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[tag]=$target_plugin_tag"
+    local target_api_endpoint="https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[tag]=${target_plugin_tag}"
 
     if [ "$overdrive_active" == true ]; then
         echo -e "\e[1;31mThat takes a while because of...OVERDRIVE!!!\e[0m"
@@ -136,7 +136,7 @@ function PrintResults() {
             echo -e "\e[1;31m$(printf "%-${max_string_length}s" "$plugin_name")\e[0m \e[1;31m[found]\e[0m"
         done
 
-        echo -e "\n\e[1;32mThat are my findings. Good luck.\e[0m\n"
+        echo -e "\n\e[1;32mThese are my findings. Good luck!\e[0m\n"
     else
         echo -e "\e[1;32mNothing found. Good luck.\e[0m\n"
     fi
