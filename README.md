@@ -63,6 +63,10 @@ Happy scanning!
 
 In overdrive mode, the script gathers and evaluates all plugins accessible through the WordPress plugin API on the specified target. The collection process may take some time. During this mode, any default or custom rate limits are deactivated.
 
+## Example output
+
+![example output](./img/example_output.png)
+
 # TODO
 
 - local storage file for tags with use or update
