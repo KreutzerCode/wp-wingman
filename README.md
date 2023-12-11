@@ -61,6 +61,5 @@ Happy scanning!
 
 # TODO
 
-- summary of found plugins at the end
 - overdrive mode
 - local storage file for tags with use or update
