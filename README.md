@@ -51,15 +51,18 @@ Arguments:
         required: -u              wordpress url
         optional: -t              wordpress plugin tag (default securtiy)
         optional: -r              rate limit on target (default 0-1s)
+        optional: --overdrive     checks all public plugins on target (very aggressiv)
 
 Send over Wingman:
 ./scan.sh -u www.example.com -r 5 -t newsletter
 
+Happy scanning!
 ```
 
-Happy scanning!
+### Overdrive
+
+In overdrive mode, the script gathers and evaluates all plugins accessible through the WordPress plugin API on the specified target. The collection process may take some time. During this mode, any default or custom rate limits are deactivated.
 
 # TODO
 
-- overdrive mode
 - local storage file for tags with use or update

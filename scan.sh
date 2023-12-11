@@ -34,18 +34,25 @@ rate_limit=1
 target_plugin_Tag="security"
 wp_url=""
 plugins_found_on_target=()
+overdrive_active=false
 
 function FetchPluginsByTag() {
     echo -e "\e[1;33mUpdating PlayBook...\e[0m"
-    local api_url="https://api.wordpress.org/plugins/info/1.2/"
-    local response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=$target_plugin_tag")
+    local target_api_endpoint="https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[tag]=$target_plugin_tag"
+
+    if [ "$overdrive_active" == true ]; then
+        echo -e "\e[1;31mThat takes a while because of...OVERDRIVE!!!\e[0m"
+        target_api_endpoint="https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[browse]"
+    fi
+
+    local response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${target_api_endpoint}")
 
     local page=2
     local total_pages=$(jq -r '.info.pages' <<<"$response")
     mapfile -t plugin_name_list < <(jq -r '.plugins[].slug' <<<"$response")
 
     while [ "$page" -le "$total_pages" ]; do
-        response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=$target_plugin_tag&request[page]=${page}")
+        response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${target_api_endpoint}&request[page]=${page}")
         plugin_name_list+=($(echo "$response" | jq -r '.plugins[].slug'))
         ((page++))
     done
@@ -53,7 +60,11 @@ function FetchPluginsByTag() {
     plugin_name_list_length=${#plugin_name_list[@]}
     max_string_length=$(printf "%s\n" "${plugin_name_list[@]}" | awk '{ if (length > x) x = length } END { print x }')
 
-    echo -e "\e[1;32mDone. $plugin_name_list_length found.\e[0m"
+    if [ "$overdrive_active" == true ]; then
+        echo -e "\e[1;31mDone. $plugin_name_list_length found!!!\e[0m"
+    else
+        echo -e "\e[1;32mDone. $plugin_name_list_length found.\e[0m"
+    fi
 
     # Display the plugin names
     #echo "Plugin Names:"
@@ -63,7 +74,7 @@ function FetchPluginsByTag() {
 }
 
 function HelpMenu() {
-    echo -e "\e[1;33mArguments:\n\t\e[1;31mrequired:\e[1;33m -u\t\twordpress url\e[1;33m\n\t\e[1;34moptional:\e[1;33m -t\t\twordpress plugin tag (default securtiy)\t\n\t\e[1;34moptional:\e[1;33m -r\t\trate limit on target (default 0-1s)\n\t\e[1;33m"
+    echo -e "\e[1;33mArguments:\n\t\e[1;31mrequired:\e[1;33m -u\t\twordpress url\e[1;33m\n\t\e[1;34moptional:\e[1;33m -t\t\twordpress plugin tag (default securtiy)\t\n\t\e[1;34moptional:\e[1;33m -r\t\trate limit on target (default 0-1s)\n\t\e[1;33m\e[1;34moptional:\e[1;33m --overdrive\tchecks all public plugins on target (very aggressiv)\n\t\e[1;33m"
     echo -e "Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \e[1;32m"
 }
 
@@ -82,7 +93,8 @@ function PrintFindings() {
     local plugin_name=$2
 
     if [ "$is_found" == "true" ]; then
-        echo -e "\e[1;31m$(printf "%-${max_string_length}s" "$plugin_name")\e[0m \e[1;31m[found]\e[0m"
+        echo -e "\e[1;31m$(printf "%-${max_string_length}s" "$plugin_name")\e[0m \e[1;31m[found]\e[0m\033[K"
+
         plugins_found_on_target+=($plugin_name)
     else
         printf "\e[1;34m%-${max_string_length}s\e[0m \e[1;34m[ok][%d/%d]\e[0m\r" "$plugin_name" "$((current_plugin_in_check_index + 1))" "$plugin_name_list_length"
@@ -103,7 +115,10 @@ function CheckPluginsAvailablity() {
 
         # Introduce a rate_limit between 0 and X seconds
         # Add one to get desired value in sek 4 = 3
-        sleep $(($RANDOM % $rate_limit + 1))
+        # Only when not in OVERDRIVE!!!
+        if [ "$overdrive_active" == false ]; then
+            sleep $(($RANDOM % $rate_limit + 1))
+        fi
     done
 
     PrintResults
@@ -168,6 +183,10 @@ while [[ $# -gt 0 ]]; do
         t_value="$1"
         args+=("-t" "$t_value")
         ;;
+    --overdrive)
+        shift
+        overdrive_active=true
+        ;;
     -*)
         echo -e "\n\e[1;31mInvalid argument: $1\e[0m\n"
         HelpMenu
@@ -196,12 +215,12 @@ u_index=$(printf '%s\n' "${args[@]}" | grep -n '^\-u' | cut -f1 -d:)
 for ((i = 0; i < ${#args[@]}; i += 2)); do
     option="${args[i]}"
     value="${args[i + 1]}"
-    if [ "$option" == "-r" ]; then
+    if [ "$option" == "-r" ] && [ "$overdrive_active" == false ]; then
         rate_limit="$value"
         echo -e "\e[1;32mSet rate limit to: $value\e[0m"
     fi
 
-    if [ "$option" == "-t" ]; then
+    if [ "$option" == "-t" ] && [ "$overdrive_active" == false ]; then
         target_plugin_tag="$value"
         echo -e "\e[1;32mSet plugin tag to: $value\e[0m"
     fi
