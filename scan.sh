@@ -41,18 +41,15 @@ function FetchPluginsByTag(){
     local response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=$target_plugin_tag")
     
     local page=2
-    local total_pages=$(echo "$response" | jq -r '.info.pages')
-    local plugin_names=($(echo "$response" | jq -r '.plugins[].slug'))
+    local total_pages=$(jq -r '.info.pages' <<< "$response")
+    mapfile -t plugin_name_list < <(jq -r '.plugins[].slug' <<< "$response")
 
     while [ "$page" -le "$total_pages" ]; do
         response=$(curl -g -s -A "${user_agents[RANDOM % ${#user_agents[@]}]}" "${api_url}?action=query_plugins&request[tag]=$target_plugin_tag&request[page]=${page}")
-        names_on_page=($(echo "$response" | jq -r '.plugins[].slug'))
-        plugin_names+=("${names_on_page[@]}")
-
+        plugin_name_list+=($(echo "$response" | jq -r '.plugins[].slug'))
         ((page++))
     done
 
-    plugin_name_list=("${plugin_names[@]}")
     plugin_name_list_length=${#plugin_name_list[@]}
     max_string_length=$(printf "%s\n" "${plugin_name_list[@]}" | awk '{ if (length > x) x = length } END { print x }')
 
@@ -60,10 +57,10 @@ function FetchPluginsByTag(){
 
     # Display the plugin names
     #echo "Plugin Names:"
-    #for name in "${plugin_names[@]}"; do
+    #for name in "${plugin_name_list[@]}"; do
     #    echo "$name"
     #done
-} 
+}
 
 function HelpMenu(){
     echo -e "\e[1;33mArguments:\n\t\e[1;31mrequired:\e[1;33m -u\t\twordpress url\e[1;33m\n\t\e[1;34moptional:\e[1;33m -t\t\twordpress plugin tag (default securtiy)\t\n\t\e[1;34moptional:\e[1;33m -r\t\trate limit on target (default 0-1s)\n\t\e[1;33m"
