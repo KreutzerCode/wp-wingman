@@ -13,7 +13,10 @@ __        ______   __        _____ _   _  ____ __  __    _    _   _
 "
 
 pluginNameList=()
-rateLimit=2
+pluginNameListLength=0
+max_string_length=0
+currentPluginInCheckIndex=0
+rateLimit=1
 targetPluginTag="security"
 user_agents=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
             "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
@@ -48,8 +51,10 @@ function fetch_plugins_by_tag(){
     done
 
     pluginNameList=("${plugin_names[@]}")
-    array_length=${#pluginNameList[@]}
-    echo -e "\e[1;32mDone. $array_length found.\e[0m"
+    pluginNameListLength=${#pluginNameList[@]}
+    max_string_length=$(printf "%s\n" "${pluginNameList[@]}" | awk '{ if (length > x) x = length } END { print x }')
+
+    echo -e "\e[1;32mDone. $pluginNameListLength found.\e[0m"
 
     # Display the plugin names
     #echo "Plugin Names:"
@@ -59,10 +64,9 @@ function fetch_plugins_by_tag(){
 } 
 
 helpMenu(){
-    echo -e "\e[1;33mArguments:\n\t\e[1;31mrequired:\e[1;33m -u\t\twordpress url\e[1;33m\n\t\e[1;34moptional:\e[1;33m -t\t\twordpress plugin tag (default securtiy)\t\n\t\e[1;34moptional:\e[1;33m -r\t\trate limit on target (default 0-2s)\n\t\e[1;33m"
+    echo -e "\e[1;33mArguments:\n\t\e[1;31mrequired:\e[1;33m -u\t\twordpress url\e[1;33m\n\t\e[1;34moptional:\e[1;33m -t\t\twordpress plugin tag (default securtiy)\t\n\t\e[1;34moptional:\e[1;33m -r\t\trate limit on target (default 0-1s)\n\t\e[1;33m"
     echo -e "Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \e[1;32m"
 }
-
 
 testUrl() {
     local url=$1 
@@ -74,6 +78,18 @@ testUrl() {
     fi
 }
 
+printFindings(){
+    local isFound=$1
+    local pluginName=$2
+
+    if [ "$isFound" == "true" ]; then
+       echo -e "\e[1;31m$(printf "%-${max_string_length}s" "$pluginName")\e[0m \e[1;31m[found]\e[0m"
+       allClear=false
+    else
+        printf "\e[1;34m%-${max_string_length}s\e[0m \e[1;34m[ok][${currentPluginInCheckIndex} / ${pluginNameListLength}]\e[0m\r" "$pluginName"
+    fi
+} 
+
 guardEnum(){
     local url=$1
     local allClear=true
@@ -83,13 +99,10 @@ guardEnum(){
 
     for pluginName in "${pluginNameList[@]}"; do
         result=$(testUrl "$url/$pluginsPrefix/$pluginName/$pluginSuffix")
-        if [ "$result" == "true" ]; then
-            echo -e "\e[1;31m$pluginName\e[0m"
-            allClear=false
-        else
-            #echo -ne "\e[1;34m$pluginName\e[0m \033[0K\r"
-            echo -e "\e[1;34m$pluginName\e[0m"
-        fi
+        
+        printFindings "$result" "$pluginName"
+        ((currentPluginInCheckIndex++))
+
 
         # Introduce a ratelimit between 0 and X seconds
         # Add one to get desired value in sek 4 = 3

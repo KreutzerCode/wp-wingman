@@ -46,11 +46,11 @@ __        ______   __        _____ _   _  ____ __  __    _    _   _
   \ V  V / |  __/    \ V  V /  | || |\  | |_| | |  | |/ ___ \| |\  |
    \_/\_/  |_|        \_/\_/  |___|_| \_|\____|_|  |_/_/   \_\_| \_|
 
-                            \e[1;34m  @kreutzercode
+                            @kreutzercode
 Arguments:
         required: -u              wordpress url
         optional: -t              wordpress plugin tag (default securtiy)
-        optional: -r              rate limit on target (default 0-2s)
+        optional: -r              rate limit on target (default 0-1s)
 
 Send over Wingman:
 ./scan.sh -u www.example.com -r 5 -t newsletter
@@ -63,4 +63,5 @@ Happy scanning!
 
 - selfupdating line of currently checked plugin slug
 - summary of found plugins at the end
-- add maniac mode
+- overdrive mode
+- local storage file for tags with use or update
