@@ -80,7 +80,7 @@ function FetchPluginsByTag() {
 }
 
 function HelpMenu() {
-    echo -e "\e[1;33mArguments:\n\t\e[1;31mrequired:\e[1;33m -u\t\t\twordpress url\e[1;33m\n\t\e[1;34moptional:\e[1;33m -t\t\t\twordpress plugin tag (default securtiy)\t\t\t\n\t\e[1;34moptional:\e[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\e[1;33m\e[1;34moptional:\e[1;33m --overdrive\t\tchecks all public plugins on target (very aggressiv)\n\t\e[1;33m\e[1;34moptional:\e[1;33m\e[1;33m --save-playbook\tsaves collected plugin names in file\n\t\e[1;33m\e[1;34moptional:\e[1;33m\e[1;33m --save-result\t\tsaves plugins found on target\n\t\e[1;33m"
+    echo -e "\e[1;33mArguments:\n\t\e[1;31mrequired:\e[1;33m -u\t\t\twordpress url\e[1;33m\n\t\e[1;34moptional:\e[1;33m -t\t\t\twordpress plugin tag (default securtiy)\t\t\t\n\t\e[1;34moptional:\e[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\e[1;33m\e[1;34moptional:\e[1;33m --overdrive\t\tcheck all public plugins on target (very aggressiv)\n\t\e[1;33m\e[1;34moptional:\e[1;33m\e[1;33m --save-playbook\tsave collected plugins in file\n\t\e[1;33m\e[1;34moptional:\e[1;33m\e[1;33m --save-result\t\tsave plugins found on target in file\n\t\e[1;33m"
     echo -e "Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \e[1;32m"
 }
 
