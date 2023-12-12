@@ -36,6 +36,7 @@ wp_url=""
 plugins_found_on_target=()
 overdrive_active=false
 save_playbook=false
+save_result=false
 
 function FetchPluginsByTag() {
     echo -e "\e[1;33mUpdating PlayBook...\e[0m"
@@ -79,7 +80,7 @@ function FetchPluginsByTag() {
 }
 
 function HelpMenu() {
-    echo -e "\e[1;33mArguments:\n\t\e[1;31mrequired:\e[1;33m -u\t\twordpress url\e[1;33m\n\t\e[1;34moptional:\e[1;33m -t\t\twordpress plugin tag (default securtiy)\t\n\t\e[1;34moptional:\e[1;33m -r\t\trate limit on target (default 0-1s)\n\t\e[1;33m\e[1;34moptional:\e[1;33m --overdrive\tchecks all public plugins on target (very aggressiv)\n\t\e[1;33m"
+    echo -e "\e[1;33mArguments:\n\t\e[1;31mrequired:\e[1;33m -u\t\t\twordpress url\e[1;33m\n\t\e[1;34moptional:\e[1;33m -t\t\t\twordpress plugin tag (default securtiy)\t\t\t\n\t\e[1;34moptional:\e[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\e[1;33m\e[1;34moptional:\e[1;33m --overdrive\t\tchecks all public plugins on target (very aggressiv)\n\t\e[1;33m\e[1;34moptional:\e[1;33m\e[1;33m --save-playbook\tsaves collected plugin names in file\n\t\e[1;33m\e[1;34moptional:\e[1;33m\e[1;33m --save-result\t\tsaves plugins found on target\n\t\e[1;33m"
     echo -e "Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \e[1;32m"
 }
 
@@ -126,12 +127,29 @@ function CheckPluginsAvailablity() {
         fi
     done
 
-    PrintResults
+    PrintResult
+
+    if [ "$save_result" == true ]; then
+        SaveResultToFile
+    fi
 
     exit
 }
 
-function PrintResults() {
+function SaveResultToFile() {
+    echo -e "\e[1;33mSaving Result...\e[0m"
+    local timestamp=$(date +"%Y%m%d%H%M%S")
+    #local file_name="wp-wingman-${wp_url}-${timestamp}.txt"
+    local file_name=$(echo "$url" | sed -e 's|^.*://||' -e 's|/.*$||' | awk -F[/:.] '{print $(NF-1)}')
+
+    for string in "${plugins_found_on_target[@]}"; do
+        echo "$string" >>"wp-wingman-$file_name-$timestamp.txt"
+    done
+
+    echo -e "\e[1;32mDone. Have a great day!\e[0m\n"
+}
+
+function PrintResult() {
     echo -e "\n\n\n\e[1;32mDone.\e[0m\n"
     echo -e "\e[1;32mSummary:\e[0m\n"
 
@@ -141,7 +159,7 @@ function PrintResults() {
             echo -e "\e[1;31m$(printf "%-${max_string_length}s" "$plugin_name")\e[0m \e[1;31m[found]\e[0m"
         done
 
-        echo -e "\n\e[1;32mThese are my findings. Good luck!\e[0m\n"
+        echo -e "\n\e[1;32mThese are my findings. Good luck sir!\e[0m\n"
     else
         echo -e "\e[1;32mNothing found. Good luck.\e[0m\n"
     fi
@@ -252,6 +270,9 @@ while [[ $# -gt 0 ]]; do
         ;;
     --save-playbook)
         save_playbook=true
+        ;;
+    --save-result)
+        save_result=true
         ;;
     -*)
         echo -e "\n\e[1;31mInvalid argument: $1\e[0m\n"
