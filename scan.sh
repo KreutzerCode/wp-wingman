@@ -146,7 +146,18 @@ function StartWingmanJob() {
     result=$(TestUrlForAvailability "$wp_url/wp-login.php")
     if [ "$result" == "true" ]; then
         echo -e "\e[1;32mWordPress site detected: $wp_url\e[0m"
-        FetchPluginsByTag
+
+        if CheckIfSaveFileExists; then
+            echo -e "\e[1;33mSave file found - should i use it? (y/n)\e[0m"
+            read answer
+            if [ "$answer" == "y" ]; then
+                LoadPluginNamesFromSaveFile
+            else
+                FetchPluginsByTag
+            fi
+        else
+            FetchPluginsByTag
+        fi
 
         echo -e "\e[1;33mDo you want me to start? (y/n)\e[0m"
         read answer
@@ -161,6 +172,29 @@ function StartWingmanJob() {
         echo -e "\e[1;31m$wp_url\e[0m"
         exit 1
     fi
+}
+
+function LoadPluginNamesFromSaveFile() {
+    echo -e "\e[1;32mLoading Playbook from save file .\e[0m\n"
+
+    while IFS= read -r line || [ -n "$line" ]; do
+        plugin_name_list+=("$line")
+    done <"wp-wingman-${target_plugin_tag}.txt"
+
+    plugin_name_list_length=${#plugin_name_list[@]}
+    max_string_length=$(printf "%s\n" "${plugin_name_list[@]}" | awk '{ if (length > x) x = length } END { print x }')
+
+    if [ "$overdrive_active" == true ]; then
+        echo -e "\e[1;31mDone. $plugin_name_list_length found!!!\e[0m"
+    else
+        echo -e "\e[1;32mDone. $plugin_name_list_length found.\e[0m"
+    fi
+}
+
+function CheckIfSaveFileExists() {
+    file_path="$(dirname "$(readlink -f "$0")")/wp-wingman-${target_plugin_tag}.txt"
+
+    [ -e "$file_path" ] && true || false
 }
 
 args=()
