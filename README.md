@@ -10,14 +10,19 @@ The WordPress Plugin Scanner designed for identifying any plugins on WordPress s
 
 ## Features
 
-- Fetches plugin names based on a specified tag from the WordPress Plugins API.
+- Fetches up-to-date plugin names from the WordPress Plugins API.
 - Supports rate limiting to avoid excessive requests to the target site.
 - Checks for the existence of each plugin on the target WordPress site.
-- Provides user-friendly prompts and outputs for easy interaction.
+- Possibility to save the plugin names collected via the Wordpress API in a file.
+- Provides a summary and the option to save the results in a file
 
 ## Functionality
 
-The script utilizes the WordPress Plugins API to fetch plugin names based on a specified tag. The user can provide a WordPress site URL, an optional rate limit for requests, and an optional plugin tag. The script then checks for the existence of each plugin by attempting to access its readme.txt file on the target system.
+The Purpose of this devensive Penetation testing tool to check every installed Plugin on a target system. It utilizes the WordPress Plugins API to fetch plugin names based on a specified tag. And run it against the target system. The user can provide an optional rate limit for requests, and an optional plugin tag and other options to save the collected data or run the script in a specific mode.
+
+## Intentions
+
+This script is intended for security testing. Any use should be approved by the owner of the target website. Use the rate limiting options if you are concerned about the server load caused.
 
 ## Requirements
 
@@ -48,10 +53,12 @@ __        ______   __        _____ _   _  ____ __  __    _    _   _
 
                             @kreutzercode
 Arguments:
-        required: -u              wordpress url
-        optional: -t              wordpress plugin tag (default securtiy)
-        optional: -r              rate limit on target (default 0-1s)
-        optional: --overdrive     checks all public plugins on target (very aggressiv)
+        required: -u                    wordpress url
+        optional: -t                    wordpress plugin tag (default securtiy)
+        optional: -r                    rate limit on target (default 0-1s)
+        optional: --overdrive           check all public plugins on target (very aggressiv)
+        optional: --save-playbook       save collected plugins in file
+        optional: --save-result         save plugins found on target in file
 
 Send over Wingman:
 ./scan.sh -u www.example.com -r 5 -t newsletter
@@ -61,12 +68,24 @@ Happy scanning!
 
 ### Overdrive
 
+#### Argument: `--overdrive`
+
 In overdrive mode, the script gathers and evaluates all plugins accessible through the WordPress plugin API on the specified target. The collection process may take some time. During this mode, any default or custom rate limits are deactivated.
+
+### Save Playbook
+
+#### Argument: `--save-playbook`
+
+With the `--save-playbook` argument, the plugin slugs collected from the wordpress api are saved to a `wp-wingman-x.txt` file.
+
+The script automatically determines whether a save file exists for the current mode or tag and asks whether it should be used.
+
+### Save Result
+
+#### Argument: `--save-result`
+
+With the argument `--save-result` the found plugins are saved in a file `wp-wingman-x-x.txt` after a successful operation.
 
 ## Example output
 
 ![example output](./img/example_output.png)
-
-# TODO
-
-- local storage file for tags with use or update
