@@ -88,4 +88,8 @@ With the argument `--save-result` the found plugins are saved in a file `wp-wing
 
 ## Example output
 
-![example output](./img/example_output.png)
+![example output](./img/example_usage.png)
+
+# TODO
+
+- fallback validation if wordpress page (dont just check wp-login)

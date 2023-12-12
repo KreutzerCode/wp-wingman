@@ -139,7 +139,6 @@ function CheckPluginsAvailablity() {
 function SaveResultToFile() {
     echo -e "\e[1;33mSaving Result...\e[0m"
     local timestamp=$(date +"%Y%m%d%H%M%S")
-    #local file_name="wp-wingman-${wp_url}-${timestamp}.txt"
     local file_name=$(echo "$url" | sed -e 's|^.*://||' -e 's|/.*$||' | awk -F[/:.] '{print $(NF-1)}')
 
     for string in "${plugins_found_on_target[@]}"; do
