@@ -10,15 +10,15 @@ The WordPress Plugin Scanner designed for identifying any plugins on WordPress s
 
 ## Features
 
-- Fetches up-to-date plugin names from the WordPress Plugins API.
+- Fetches up-to-date plugin slugs from the WordPress Plugins API.
 - Supports rate limiting to avoid excessive requests to the target site.
 - Checks for the existence of each plugin on the target WordPress site.
-- Possibility to save the plugin names collected via the Wordpress API in a file.
+- Possibility to save the plugin slugs collected via the Wordpress API in a file.
 - Provides a summary and the option to save the results in a file
 
 ## Functionality
 
-The Purpose of this devensive Penetation testing tool to check every installed Plugin on a target system. It utilizes the WordPress Plugins API to fetch plugin names based on a specified tag. And run it against the target system. The user can provide an optional rate limit for requests, and an optional plugin tag and other options to save the collected data or run the script in a specific mode.
+The Purpose of this devensive Penetation testing tool to check every installed Plugin on a target system. It utilizes the WordPress Plugins API to fetch plugin slugs based on a specified tag. And runs it against the target system. The user can provide an optional rate limit for requests, and an optional plugin tag and other options to save the collected data or run the script in a specific mode.
 
 ## Intentions
 
@@ -26,7 +26,7 @@ This script is intended for security testing. Any use should be approved by the 
 
 ## Requirements
 
-Ensure that you have the following necessary dependencies installed:
+Ensure that you have the following dependencies installed:
 
 - curl
 - jq
