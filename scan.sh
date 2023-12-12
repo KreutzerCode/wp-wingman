@@ -35,6 +35,7 @@ target_plugin_tag="security"
 wp_url=""
 plugins_found_on_target=()
 overdrive_active=false
+save_playbook=false
 
 function FetchPluginsByTag() {
     echo -e "\e[1;33mUpdating PlayBook...\e[0m"
@@ -59,6 +60,10 @@ function FetchPluginsByTag() {
 
     plugin_name_list_length=${#plugin_name_list[@]}
     max_string_length=$(printf "%s\n" "${plugin_name_list[@]}" | awk '{ if (length > x) x = length } END { print x }')
+
+    if [ "$save_playbook" == true ]; then
+        SavePlaybookToFile
+    fi
 
     if [ "$overdrive_active" == true ]; then
         echo -e "\e[1;31mDone. $plugin_name_list_length found!!!\e[0m"
@@ -175,11 +180,15 @@ function StartWingmanJob() {
 }
 
 function LoadPluginNamesFromSaveFile() {
-    echo -e "\e[1;32mLoading Playbook from save file .\e[0m\n"
+    echo -e "\e[1;33mLoading Playbook from save file...\e[0m"
+    local file_name="wp-wingman-${target_plugin_tag}.txt"
+    if [ "$overdrive_active" == true ]; then
+        file_name="wp-wingman-overdrive.txt"
+    fi
 
     while IFS= read -r line || [ -n "$line" ]; do
         plugin_name_list+=("$line")
-    done <"wp-wingman-${target_plugin_tag}.txt"
+    done <$file_name
 
     plugin_name_list_length=${#plugin_name_list[@]}
     max_string_length=$(printf "%s\n" "${plugin_name_list[@]}" | awk '{ if (length > x) x = length } END { print x }')
@@ -191,8 +200,29 @@ function LoadPluginNamesFromSaveFile() {
     fi
 }
 
+function SavePlaybookToFile() {
+    echo -e "\e[1;33mSaving Playbook...\e[0m"
+    local file_name="wp-wingman-${target_plugin_tag}.txt"
+    if [ "$overdrive_active" == true ]; then
+        file_name="wp-wingman-overdrive.txt"
+    fi
+
+    # Remove the existing file if it exists
+    if [ -e "$file_name" ]; then
+        rm "$file_name"
+    fi
+
+    for string in "${plugin_name_list[@]}"; do
+        echo "$string" >>"$file_name"
+    done
+}
+
 function CheckIfSaveFileExists() {
-    file_path="$(dirname "$(readlink -f "$0")")/wp-wingman-${target_plugin_tag}.txt"
+    local file_name="wp-wingman-${target_plugin_tag}.txt"
+    if [ "$overdrive_active" == true ]; then
+        file_name="wp-wingman-overdrive.txt"
+    fi
+    file_path="$(dirname "$(readlink -f "$0")")/${file_name}"
 
     [ -e "$file_path" ] && true || false
 }
@@ -218,8 +248,10 @@ while [[ $# -gt 0 ]]; do
         args+=("-t" "$t_value")
         ;;
     --overdrive)
-        shift
         overdrive_active=true
+        ;;
+    --save-playbook)
+        save_playbook=true
         ;;
     -*)
         echo -e "\n\e[1;31mInvalid argument: $1\e[0m\n"
