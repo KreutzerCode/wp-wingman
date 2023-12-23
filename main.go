@@ -70,24 +70,14 @@ func fetchReadme(url string) (interface{}, error) {
 }
 
 func init() {
-	flagSet := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	flag.StringVar(&wpURL, "u", "", "wordpress url")
+	flag.StringVar(&rValue, "r", "", "rate limit on target (default 0-1s)")
+	flag.StringVar(&tValue, "t", "", "wordpress plugin tag (default securtiy)")
+	flag.BoolVar(&overdriveActive, "overdrive", false, "check all public plugins on target (very aggressiv)")
+	flag.BoolVar(&savePlaybook, "save-playbook", false, "save collected plugins in file")
+	flag.BoolVar(&saveResult, "save-result", false, "save plugins found on target in file")
 
-	flagSet.SetOutput(io.Discard) // Discard default error output
-
-	flagSet.StringVar(&wpURL, "u", "", "wordpress url")
-	flagSet.StringVar(&rValue, "r", "", "rate limit on target (default 0-1s)")
-	flagSet.StringVar(&tValue, "t", "", "wordpress plugin tag (default securtiy)")
-	flagSet.BoolVar(&overdriveActive, "overdrive", false, "check all public plugins on target (very aggressiv)")
-	flagSet.BoolVar(&savePlaybook, "save-playbook", false, "save collected plugins in file")
-	flagSet.BoolVar(&saveResult, "save-result", false, "save plugins found on target in file")
-
-	err := flagSet.Parse(os.Args[1:])
-	if err != nil {
-		printLogo()
-		helpMenu()
-		fmt.Printf("\n\033[1;31mError: %v\033[0m\n", err)
-		os.Exit(0)
-	}
+	flag.Parse()
 }
 
 func printLogo() {
@@ -320,11 +310,11 @@ func SavePlaybookToFile(pluginNameList []string) {
 }
 
 func FetchPluginsByTag() []string {
-	fmt.Println("\033[1;33mUpdating PlayBook...\033[0m")
+	fmt.Printf("\033[K\033[1;33m%-*s\033[0m \033[1;33m\033[0m\r", maxStringLength, "Updating PlayBook...")
+
 	targetAPIEndpoint := "https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[tag]=" + targetPluginTag
 
 	if overdriveActive == true {
-		fmt.Println("\033[1;31mThat takes a while because of...OVERDRIVE!!!\033[0m")
 		targetAPIEndpoint = "https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[browse]"
 	}
 
@@ -343,6 +333,8 @@ func FetchPluginsByTag() []string {
 		for _, plugin := range response.Plugins {
 			pluginNameList = append(pluginNameList, plugin.Slug)
 		}
+		fmt.Printf("\033[K\033[1;33m%-*s\033[0m \033[1;33m[%d/%d]\033[0m\r", maxStringLength, "Updating PlayBook...", page, totalPages)
+
 		page++
 	}
 
@@ -358,9 +350,9 @@ func FetchPluginsByTag() []string {
 	}
 
 	if overdriveActive == true {
-		fmt.Printf("\033[1;31mDone. %d found!!!\033[0m\n", pluginNameListLength)
+		fmt.Println("\n\033[1;32mDone.\033[0m", "\033[1;31m", pluginNameListLength, "found!\033[0m")
 	} else {
-		fmt.Printf("\033[1;32mDone. %d found.\033[0m\n", pluginNameListLength)
+		fmt.Println("\n\033[1;32mDone.\033[0m", "\033[1;32m", pluginNameListLength, "found.\033[0m")
 	}
 
 	// Display the plugin names
