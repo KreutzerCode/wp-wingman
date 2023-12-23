@@ -32,30 +32,6 @@ var currentPluginInCheckIndex int = 0
 var pluginNameListLength int = 0
 var targetPluginTag string = "security"
 
-func helpMenu() {
-	fmt.Println("\033[1;33mArguments:\n\t\033[1;31mrequired:\033[1;33m -u\t\t\twordpress url\033[1;33m\n\t\033[1;34moptional:\033[1;33m -t\t\t\twordpress plugin tag (default securtiy)\t\t\t\n\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\033[1;34moptional:\033[1;33m --overdrive\t\tcheck all public plugins on target (very aggressiv)\n\t\033[1;34moptional:\033[1;33m --save-playbook\tsave collected plugins in file\n\t\033[1;34moptional:\033[1;33m --save-result\t\tsave plugins found on target in file\n\t\033[1;33m")
-	fmt.Println("Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \033[1;32m")
-}
-
-func fetchReadme(url string) (interface{}, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return false, nil
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return string(body), nil
-}
-
 func init() {
 	flag.StringVar(&wpURL, "u", "", "wordpress url")
 	flag.StringVar(&rValue, "r", "", "rate limit on target (default 0-1s)")
@@ -91,6 +67,30 @@ func main() {
 	StartWingmanJob()
 }
 
+func helpMenu() {
+	fmt.Println("\033[1;33mArguments:\n\t\033[1;31mrequired:\033[1;33m -u\t\t\twordpress url\033[1;33m\n\t\033[1;34moptional:\033[1;33m -t\t\t\twordpress plugin tag (default securtiy)\t\t\t\n\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\033[1;34moptional:\033[1;33m --overdrive\t\tcheck all public plugins on target (very aggressiv)\n\t\033[1;34moptional:\033[1;33m --save-playbook\tsave collected plugins in file\n\t\033[1;34moptional:\033[1;33m --save-result\t\tsave plugins found on target in file\n\t\033[1;33m")
+	fmt.Println("Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \033[1;32m")
+}
+
+func fetchReadme(url string) (interface{}, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return false, nil
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return string(body), nil
+}
+
 func printLogo() {
 	fmt.Println("\033[1;31m" +
 		"__        ______   __        _____ _   _  ____ __  __    _    _   _ \n" +
@@ -102,7 +102,7 @@ func printLogo() {
 		"\033[0m")
 }
 
-func PrintResult(pluginsFoundOnTarget []types.PluginData) {
+func printResult(pluginsFoundOnTarget []types.PluginData) {
 	fmt.Println("\n\n\n\033[1;32mDone.\n\033[0m")
 	fmt.Println("\033[1;32mSummary:\n\033[0m")
 
@@ -117,7 +117,7 @@ func PrintResult(pluginsFoundOnTarget []types.PluginData) {
 	}
 }
 
-func DetermineMaxStringLength(list []string) int {
+func determineMaxStringLength(list []string) int {
 	maxStringLength := 0
 	for _, pluginName := range list {
 		if len(pluginName) > maxStringLength {
@@ -128,7 +128,67 @@ func DetermineMaxStringLength(list []string) int {
 	return maxStringLength
 }
 
-func CheckPluginsAvailability(url string, pluginNameList []string) []types.PluginData {
+func StartWingmanJob() {
+	result := wordpressFinder.IsWordpressSite(wpURL)
+
+	if result == false {
+		fmt.Println("\033[1;31mThe URL is not a WordPress site.\033[0m")
+		fmt.Println("\033[1;31m" + wpURL + "\033[0m")
+		os.Exit(0)
+	}
+
+	fmt.Println("\033[1;32mWordPress site detected: " + wpURL + "\033[0m")
+
+	pluginNameList := getPluginSlugList()
+	pluginNameListLength = len(pluginNameList)
+	maxStringLength = determineMaxStringLength(pluginNameList)
+
+	if savePlaybook == true {
+		fileName := fmt.Sprintf("wp-wingman-%s.txt", targetPluginTag)
+		fileManager.SavePlaybookToFile(pluginNameList, fileName)
+	}
+
+	fmt.Println("\033[1;33mDo you want me to start? (y/n)\033[0m")
+	reader := bufio.NewReader(os.Stdin)
+	answer, _ := reader.ReadString('\n')
+	if answer != "y\n" {
+		fmt.Println("\033[1;32mPuuh, okey bye.\033[0m")
+		os.Exit(0)
+	}
+
+	pluginsFoundOnTarget := checkPluginsAvailability(wpURL, pluginNameList)
+
+	printResult(pluginsFoundOnTarget)
+
+	if saveResult {
+		fileName := strings.Split(strings.Split(wpURL, "//")[1], "/")[0]
+		fileManager.SaveResultToFile(pluginsFoundOnTarget, fileName)
+	}
+
+	os.Exit(0)
+}
+
+func getPluginSlugList() []string {
+	fileName := "wp-wingman-" + targetPluginTag + ".txt"
+	pluginSlugList := []string{}
+	if fileManager.CheckIfSaveFileExists(fileName) {
+		fmt.Println("\033[1;33mSave file found - should i use it? (y/n)\033[0m")
+		reader := bufio.NewReader(os.Stdin)
+		answer, _ := reader.ReadString('\n')
+		if answer == "y\n" {
+			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromFile(targetPluginTag, overdriveActive)
+
+		} else {
+			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromAPI(targetPluginTag, overdriveActive)
+		}
+	} else {
+		pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromAPI(targetPluginTag, overdriveActive)
+	}
+
+	return pluginSlugList
+}
+
+func checkPluginsAvailability(url string, pluginNameList []string) []types.PluginData {
 	fmt.Println("\n\033[1;33m[+] Let me check this for you:\n\033")
 	pluginsPrefix := "wp-content/plugins"
 	pluginSuffix := "readme.txt"
@@ -162,64 +222,4 @@ func CheckPluginsAvailability(url string, pluginNameList []string) []types.Plugi
 	}
 
 	return pluginsFoundOnTarget
-}
-
-func getPluginSlugList() []string {
-	fileName := "wp-wingman-" + targetPluginTag + ".txt"
-	pluginSlugList := []string{}
-	if fileManager.CheckIfSaveFileExists(fileName) {
-		fmt.Println("\033[1;33mSave file found - should i use it? (y/n)\033[0m")
-		reader := bufio.NewReader(os.Stdin)
-		answer, _ := reader.ReadString('\n')
-		if answer == "y\n" {
-			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromFile(targetPluginTag, overdriveActive)
-
-		} else {
-			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromAPI(targetPluginTag, overdriveActive)
-		}
-	} else {
-		pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromAPI(targetPluginTag, overdriveActive)
-	}
-
-	return pluginSlugList
-}
-
-func StartWingmanJob() {
-	result := wordpressFinder.IsWordpressSite(wpURL)
-
-	if result == false {
-		fmt.Println("\033[1;31mThe URL is not a WordPress site.\033[0m")
-		fmt.Println("\033[1;31m" + wpURL + "\033[0m")
-		os.Exit(0)
-	}
-
-	fmt.Println("\033[1;32mWordPress site detected: " + wpURL + "\033[0m")
-
-	pluginNameList := getPluginSlugList()
-	pluginNameListLength = len(pluginNameList)
-	maxStringLength = DetermineMaxStringLength(pluginNameList)
-
-	if savePlaybook == true {
-		fileName := fmt.Sprintf("wp-wingman-%s.txt", targetPluginTag)
-		fileManager.SavePlaybookToFile(pluginNameList, fileName)
-	}
-
-	fmt.Println("\033[1;33mDo you want me to start? (y/n)\033[0m")
-	reader := bufio.NewReader(os.Stdin)
-	answer, _ := reader.ReadString('\n')
-	if answer != "y\n" {
-		fmt.Println("\033[1;32mPuuh, okey bye.\033[0m")
-		os.Exit(0)
-	}
-
-	pluginsFoundOnTarget := CheckPluginsAvailability(wpURL, pluginNameList)
-
-	PrintResult(pluginsFoundOnTarget)
-
-	if saveResult {
-		fileName := strings.Split(strings.Split(wpURL, "//")[1], "/")[0]
-		fileManager.SaveResultToFile(pluginsFoundOnTarget, fileName)
-	}
-
-	os.Exit(0)
 }
