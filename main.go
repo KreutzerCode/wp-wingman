@@ -194,9 +194,9 @@ func CheckPluginsAvailability(url string, pluginNameList []string) {
 		if content, ok := result.(string); ok {
 			versionData, found := pluginVersion.GetPluginVersion(content)
 			if found {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found][%s]\033[0m%-*s\n", maxStringLength, pluginName, versionData.Number, maxStringLength, "")
+				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found][%s]\033\n", maxStringLength, pluginName, versionData.Number)
 			} else {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[not found]\033[0m%-*s\n", maxStringLength, pluginName, maxStringLength, "")
+				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[not found]\033\n", maxStringLength, pluginName)
 			}
 			pluginsFoundOnTarget = append(pluginsFoundOnTarget, PluginData{pluginName, versionData.Number})
 		} else {
@@ -330,21 +330,21 @@ func FetchPluginsByTag() []string {
 
 	response := makeHTTPRequest(targetAPIEndpoint)
 
-	//page := 2
-	//totalPages := response.Info.Pages
+	page := 2
+	totalPages := response.Info.Pages
 	pluginNameList := make([]string, 0)
 
 	for _, plugin := range response.Plugins {
 		pluginNameList = append(pluginNameList, plugin.Slug)
 	}
 
-	//for page <= totalPages {
-	//	response = makeHTTPRequest(targetAPIEndpoint + "&request[page]=" + strconv.Itoa(page))
-	//	for _, plugin := range response.Plugins {
-	//		pluginNameList = append(pluginNameList, plugin.Slug)
-	//	}
-	//	page++
-	//}
+	for page <= totalPages {
+		response = makeHTTPRequest(targetAPIEndpoint + "&request[page]=" + strconv.Itoa(page))
+		for _, plugin := range response.Plugins {
+			pluginNameList = append(pluginNameList, plugin.Slug)
+		}
+		page++
+	}
 
 	pluginNameListLength = len(pluginNameList)
 	for _, pluginName := range pluginNameList {

@@ -92,4 +92,6 @@ With the argument `--save-result` the found plugins are saved in a file `wp-wing
 
 # TODO
 
-- fallback validation if wordpress page (dont just check wp-login)
+- extend -t flag to fetch all plugins wia "all" argument
+- rework overdrive mode to run multi threadet
+- add custom error messages for invalud / missing arguments
