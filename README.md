@@ -66,6 +66,15 @@ Send over Wingman:
 Happy scanning!
 ```
 
+### Tag
+
+#### Argument: `-t`
+
+With the -t argument you can specify the target plugin group by searching for a specific tag like _security_, _newsletter_ etc.  
+If you want to fetch all public plugins, you can add the all argument `-t all`. Be in mind that this takes a while.
+
+**Tip**: use in combination with `--save-playbook` to skip waiting time in the next run
+
 ### Overdrive
 
 #### Argument: `--overdrive`

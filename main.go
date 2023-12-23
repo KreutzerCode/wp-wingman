@@ -34,7 +34,7 @@ type PluginData struct {
 var (
 	wpURL           string
 	rValue          string
-	tValue          string
+	tFlagArgument   string
 	overdriveActive bool
 	savePlaybook    bool
 	saveResult      bool
@@ -72,7 +72,7 @@ func fetchReadme(url string) (interface{}, error) {
 func init() {
 	flag.StringVar(&wpURL, "u", "", "wordpress url")
 	flag.StringVar(&rValue, "r", "", "rate limit on target (default 0-1s)")
-	flag.StringVar(&tValue, "t", "", "wordpress plugin tag (default securtiy)")
+	flag.StringVar(&tFlagArgument, "t", "", "wordpress plugin tag (default securtiy but read the docs)")
 	flag.BoolVar(&overdriveActive, "overdrive", false, "check all public plugins on target (very aggressiv)")
 	flag.BoolVar(&savePlaybook, "save-playbook", false, "save collected plugins in file")
 	flag.BoolVar(&saveResult, "save-result", false, "save plugins found on target in file")
@@ -108,10 +108,10 @@ func main() {
 		fmt.Printf("\033[1;32mSet rate limit to: %s\033[0m\n", rValue)
 	}
 
-	if tValue != "" && !overdriveActive {
+	if tFlagArgument != "" {
 		// set global variable named target plugin tag to the value provided
-		targetPluginTag = tValue
-		fmt.Printf("\033[1;32mSet plugin tag to: %s\033[0m\n", tValue)
+		targetPluginTag = tFlagArgument
+		fmt.Printf("\033[1;32mSet plugin tag to: %s\033[0m\n", targetPluginTag)
 	}
 
 	if wpURL != "" {
@@ -121,8 +121,8 @@ func main() {
 
 func CheckIfSaveFileExists() bool {
 	fileName := "wp-wingman-" + targetPluginTag + ".txt"
-	if overdriveActive {
-		fileName = "wp-wingman-overdrive.txt"
+	if targetPluginTag == "all" {
+		fileName = "wp-wingman-all.txt"
 	}
 
 	dir, _ := os.Getwd()
@@ -248,8 +248,8 @@ func SaveResultToFile(pluginsFoundOnTarget []PluginData) {
 func LoadPluginNamesFromSaveFile() []string {
 	fmt.Println("\033[1;33mLoading Playbook from save file...\033[0m")
 	fileName := fmt.Sprintf("wp-wingman-%s.txt", targetPluginTag)
-	if overdriveActive {
-		fileName = "wp-wingman-overdrive.txt"
+	if targetPluginTag == "all" {
+		fileName = "wp-wingman-all.txt"
 	}
 
 	file, err := os.Open(fileName)
@@ -287,8 +287,8 @@ func LoadPluginNamesFromSaveFile() []string {
 func SavePlaybookToFile(pluginNameList []string) {
 	fmt.Println("\033[1;33mSaving Playbook...\033[0m")
 	fileName := fmt.Sprintf("wp-wingman-%s.txt", targetPluginTag)
-	if overdriveActive {
-		fileName = "wp-wingman-overdrive.txt"
+	if targetPluginTag == "all" {
+		fileName = "wp-wingman-all.txt"
 	}
 
 	// Remove the existing file if it exists
@@ -314,7 +314,7 @@ func FetchPluginsByTag() []string {
 
 	targetAPIEndpoint := "https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[tag]=" + targetPluginTag
 
-	if overdriveActive == true {
+	if targetPluginTag == "all" {
 		targetAPIEndpoint = "https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[browse]"
 	}
 
