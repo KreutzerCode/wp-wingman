@@ -10,7 +10,7 @@ import (
 	"wp-wingman/types"
 )
 
-func FetchPluginSlugsFromAPI(targetPluginTag string, overdriveActive bool) []string {
+func FetchPluginSlugsFromAPI(targetPluginTag string) []string {
 	fmt.Printf("\033[K\033[1;33m%s\033[0m \033[1;33m\033[0m\r", "Updating PlayBook...")
 
 	targetAPIEndpoint := "https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[tag]=" + targetPluginTag
@@ -21,7 +21,7 @@ func FetchPluginSlugsFromAPI(targetPluginTag string, overdriveActive bool) []str
 
 	pluginNameList := ReturnPluginSlugsFromAPI(targetAPIEndpoint)
 
-	if overdriveActive == true {
+	if targetPluginTag == "all" {
 		fmt.Println("\n\033[1;32mDone.\033[0m", "\033[1;31m", len(pluginNameList), "found!\033[0m")
 	} else {
 		fmt.Println("\n\033[1;32mDone.\033[0m", "\033[1;32m", len(pluginNameList), "found.\033[0m")
@@ -81,14 +81,14 @@ func fetchWordpressApi(url string) types.PluginInfo {
 	return pluginInfo
 }
 
-func FetchPluginSlugsFromFile(targetPluginTag string, overdriveActive bool) []string {
+func FetchPluginSlugsFromFile(targetPluginTag string) []string {
 	fmt.Println("\033[1;33mLoading Playbook from save file...\033[0m")
 	fileName := fmt.Sprintf("wp-wingman-%s.txt", targetPluginTag)
 
 	pluginNameList := fileManager.LoadPluginSlugsFromFile(fileName)
 	pluginNameListLength := len(pluginNameList)
 
-	if overdriveActive {
+	if targetPluginTag == "all" {
 		fmt.Printf("\033[1;31mDone. %d found!!!\n\033[0m", pluginNameListLength)
 	} else {
 		fmt.Printf("\033[1;32mDone. %d found.\n\033[0m", pluginNameListLength)

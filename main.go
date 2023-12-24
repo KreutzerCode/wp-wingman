@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 	"wp-wingman/fileManager"
+	"wp-wingman/overdrive"
 	"wp-wingman/pluginSlugLoader"
 	"wp-wingman/pluginVersion"
 	"wp-wingman/types"
@@ -36,7 +37,7 @@ func init() {
 	flag.StringVar(&wpURL, "u", "", "wordpress url")
 	flag.StringVar(&rValue, "r", "", "rate limit on target (default 0-1s)")
 	flag.StringVar(&tFlagArgument, "t", "", "wordpress plugin tag (default securtiy but read the docs)")
-	flag.BoolVar(&overdriveActive, "overdrive", false, "check all public plugins on target (very aggressiv)")
+	flag.BoolVar(&overdriveActive, "overdrive", false, "executes playbook with the boys (very aggressiv) (default 10 workers)")
 	flag.BoolVar(&savePlaybook, "save-playbook", false, "save collected plugins in file")
 	flag.BoolVar(&saveResult, "save-result", false, "save plugins found on target in file")
 
@@ -68,7 +69,7 @@ func main() {
 }
 
 func helpMenu() {
-	fmt.Println("\033[1;33mArguments:\n\t\033[1;31mrequired:\033[1;33m -u\t\t\twordpress url\033[1;33m\n\t\033[1;34moptional:\033[1;33m -t\t\t\twordpress plugin tag (default securtiy)\t\t\t\n\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\033[1;34moptional:\033[1;33m --overdrive\t\tcheck all public plugins on target (very aggressiv)\n\t\033[1;34moptional:\033[1;33m --save-playbook\tsave collected plugins in file\n\t\033[1;34moptional:\033[1;33m --save-result\t\tsave plugins found on target in file\n\t\033[1;33m")
+	fmt.Println("\033[1;33mArguments:\n\t\033[1;31mrequired:\033[1;33m -u\t\t\twordpress url\033[1;33m\n\t\033[1;34moptional:\033[1;33m -t\t\t\twordpress plugin tag (default securtiy but read the docs)\t\t\t\n\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\033[1;34moptional:\033[1;33m --overdrive\t\texecutes playbook with the boys (very aggressiv) (default 10 workers)\n\t\033[1;34moptional:\033[1;33m --save-playbook\tsave collected plugins in file\n\t\033[1;34moptional:\033[1;33m --save-result\t\tsave plugins found on target in file\n\t\033[1;33m")
 	fmt.Println("Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \033[1;32m")
 }
 
@@ -176,13 +177,13 @@ func getPluginSlugList() []string {
 		reader := bufio.NewReader(os.Stdin)
 		answer, _ := reader.ReadString('\n')
 		if answer == "y\n" {
-			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromFile(targetPluginTag, overdriveActive)
+			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromFile(targetPluginTag)
 
 		} else {
-			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromAPI(targetPluginTag, overdriveActive)
+			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromAPI(targetPluginTag)
 		}
 	} else {
-		pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromAPI(targetPluginTag, overdriveActive)
+		pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromAPI(targetPluginTag)
 	}
 
 	return pluginSlugList
@@ -190,6 +191,19 @@ func getPluginSlugList() []string {
 
 func checkPluginsAvailability(url string, pluginNameList []string) []types.PluginData {
 	fmt.Println("\n\033[1;33m[+] Let me check this for you:\n\033")
+
+	pluginsFoundOnTarget := []types.PluginData{}
+
+	if overdriveActive {
+		pluginsFoundOnTarget = overdrive.CheckPluginsInOverdriveMode(url, maxStringLength, pluginNameList)
+	} else {
+		pluginsFoundOnTarget = checkPluginsInNormalMode(url, pluginNameList)
+	}
+
+	return pluginsFoundOnTarget
+}
+
+func checkPluginsInNormalMode(url string, pluginNameList []string) []types.PluginData {
 	pluginsPrefix := "wp-content/plugins"
 	pluginSuffix := "readme.txt"
 	pluginsFoundOnTarget := []types.PluginData{}
@@ -208,17 +222,14 @@ func checkPluginsAvailability(url string, pluginNameList []string) []types.Plugi
 			} else {
 				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[not found]\033\n", maxStringLength, pluginName)
 			}
-			pluginsFoundOnTarget = append(pluginsFoundOnTarget, types.PluginData{Name: pluginName, Version: versionData.Number})
+			pluginsFoundOnTarget = append(pluginsFoundOnTarget, types.PluginData{Name: pluginName, Version: versionData.Number, Found: true})
 		} else {
 			fmt.Printf("\033[K\033[1;34m%-*s\033[0m \033[1;34m[ok][%d/%d]\033[0m\r", maxStringLength, pluginName, currentPluginInCheckIndex+1, pluginNameListLength)
 		}
 
 		currentPluginInCheckIndex++
 		// Introduce a rate limit between 0 and X seconds
-		// Only when not in OVERDRIVE!!!
-		if !overdriveActive {
-			time.Sleep(time.Duration(rand.Intn(rateLimit)) * time.Second)
-		}
+		time.Sleep(time.Duration(rand.Intn(rateLimit)) * time.Second)
 	}
 
 	return pluginsFoundOnTarget

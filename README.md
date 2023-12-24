@@ -101,6 +101,5 @@ With the argument `--save-result` the found plugins are saved in a file `wp-wing
 
 # TODO
 
-- extend -t flag to fetch all plugins wia "all" argument
-- rework overdrive mode to run multi threadet
+- rework overdrive mode to run multi threadet - with configurable thread count
 - add custom error messages for invalud / missing arguments
