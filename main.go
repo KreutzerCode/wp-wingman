@@ -22,6 +22,7 @@ var (
 	wpURL           string
 	rValue          string
 	tFlagArgument   string
+	wFlagArgument   int
 	overdriveActive bool
 	savePlaybook    bool
 	saveResult      bool
@@ -36,7 +37,8 @@ func init() {
 	flag.StringVar(&wpURL, "u", "", "wordpress url")
 	flag.StringVar(&rValue, "r", "", "rate limit on target (default 0-1s)")
 	flag.StringVar(&tFlagArgument, "t", "", "wordpress plugin tag (default securtiy but read the docs)")
-	flag.BoolVar(&overdriveActive, "overdrive", false, "executes playbook with the boys (very aggressiv) (default 10 workers)")
+	flag.IntVar(&wFlagArgument, "w", 10, "number of workers to execute playbook (only available in overdrive mode) (default 10)")
+	flag.BoolVar(&overdriveActive, "overdrive", false, "executes playbook with the boys (very aggressiv)")
 	flag.BoolVar(&savePlaybook, "save-playbook", false, "save collected plugins in file")
 	flag.BoolVar(&saveResult, "save-result", false, "save plugins found on target in file")
 
@@ -64,11 +66,15 @@ func main() {
 		fmt.Printf("\033[1;32mSet plugin tag to: %s\033[0m\n", targetPluginTag)
 	}
 
+	if wFlagArgument != 10 && overdriveActive {
+		fmt.Printf("\033[1;32mSet number of workers to: %d\033[0m\n", wFlagArgument)
+	}
+
 	StartWingmanJob()
 }
 
 func helpMenu() {
-	fmt.Println("\033[1;33mArguments:\n\t\033[1;31mrequired:\033[1;33m -u\t\t\twordpress url\033[1;33m\n\t\033[1;34moptional:\033[1;33m -t\t\t\twordpress plugin tag (default securtiy but read the docs)\t\t\t\n\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\033[1;34moptional:\033[1;33m --overdrive\t\texecutes playbook with the boys (very aggressiv) (default 10 workers)\n\t\033[1;34moptional:\033[1;33m --save-playbook\tsave collected plugins in file\n\t\033[1;34moptional:\033[1;33m --save-result\t\tsave plugins found on target in file\n\t\033[1;33m")
+	fmt.Println("\033[1;33mArguments:\n\t\033[1;31mrequired:\033[1;33m -u\t\t\twordpress url\033[1;33m\n\t\033[1;34moptional:\033[1;33m -t\t\t\twordpress plugin tag (default securtiy but read the docs)\t\t\t\n\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\033[1;34moptional:\033[1;33m -w\t\t\tnumber of workers to execute playbook (only available in overdrive mode)\n\t\033[1;34moptional:\033[1;33m --overdrive\t\texecutes playbook with the boys (very aggressiv)\n\t\033[1;34moptional:\033[1;33m --save-playbook\tsave collected plugins in file\n\t\033[1;34moptional:\033[1;33m --save-result\t\tsave plugins found on target in file\n\t\033[1;33m")
 	fmt.Println("Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \033[1;32m")
 }
 
@@ -175,7 +181,7 @@ func checkPluginsAvailability(url string, pluginNameList []string) []types.Plugi
 	pluginsFoundOnTarget := []types.PluginData{}
 
 	if overdriveActive {
-		pluginsFoundOnTarget = overdrive.CheckPluginsInOverdriveMode(url, maxStringLength, pluginNameList)
+		pluginsFoundOnTarget = overdrive.CheckPluginsInOverdriveMode(url, maxStringLength, pluginNameList, wFlagArgument)
 	} else {
 		pluginsFoundOnTarget = checkPluginsInNormalMode(url, pluginNameList)
 	}

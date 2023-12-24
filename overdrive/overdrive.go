@@ -11,8 +11,7 @@ import (
 var pluginsFoundOnTarget []types.PluginData
 var wpURL string
 var maxStringLength int = 0
-
-const numWorkers = 10
+var numWorkers = 10
 
 func checkURL(pluginName string, resultsChannel chan<- types.PluginData) {
 	pluginsPrefix := "wp-content/plugins"
@@ -45,8 +44,9 @@ func worker(urlsToCheck <-chan string, resultsChannel chan<- types.PluginData) {
 	}
 }
 
-func CheckPluginsInOverdriveMode(url string, maxPluginNameLength int, pluginNameList []string) []types.PluginData {
+func CheckPluginsInOverdriveMode(url string, maxPluginNameLength int, pluginNameList []string, numberOfWorkers int) []types.PluginData {
 	urlsToCheck := pluginNameList
+	numWorkers = numberOfWorkers
 	listLength := len(urlsToCheck)
 	var waitGroup sync.WaitGroup
 	resultsChannel := make(chan types.PluginData, listLength)
