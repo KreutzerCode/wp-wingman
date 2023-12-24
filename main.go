@@ -4,9 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io"
 	"math/rand"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -16,6 +14,7 @@ import (
 	"wp-wingman/pluginSlugLoader"
 	"wp-wingman/pluginVersion"
 	"wp-wingman/types"
+	"wp-wingman/utils"
 	"wp-wingman/wordpressFinder"
 )
 
@@ -71,25 +70,6 @@ func main() {
 func helpMenu() {
 	fmt.Println("\033[1;33mArguments:\n\t\033[1;31mrequired:\033[1;33m -u\t\t\twordpress url\033[1;33m\n\t\033[1;34moptional:\033[1;33m -t\t\t\twordpress plugin tag (default securtiy but read the docs)\t\t\t\n\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\033[1;34moptional:\033[1;33m --overdrive\t\texecutes playbook with the boys (very aggressiv) (default 10 workers)\n\t\033[1;34moptional:\033[1;33m --save-playbook\tsave collected plugins in file\n\t\033[1;34moptional:\033[1;33m --save-result\t\tsave plugins found on target in file\n\t\033[1;33m")
 	fmt.Println("Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \033[1;32m")
-}
-
-func fetchReadme(url string) (interface{}, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return false, nil
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return string(body), nil
 }
 
 func printLogo() {
@@ -208,7 +188,7 @@ func checkPluginsInNormalMode(url string, pluginNameList []string) []types.Plugi
 	pluginSuffix := "readme.txt"
 	pluginsFoundOnTarget := []types.PluginData{}
 	for _, pluginName := range pluginNameList {
-		result, err := fetchReadme(fmt.Sprintf("%s/%s/%s/%s", url, pluginsPrefix, pluginName, pluginSuffix))
+		result, err := utils.FetchReadme(fmt.Sprintf("%s/%s/%s/%s", url, pluginsPrefix, pluginName, pluginSuffix))
 
 		if err != nil {
 			fmt.Println("\033[1;31mError checking Plugin: "+pluginName+"\033[0m\n", err)

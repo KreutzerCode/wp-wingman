@@ -103,3 +103,4 @@ With the argument `--save-result` the found plugins are saved in a file `wp-wing
 
 - rework overdrive mode to run multi threadet - with configurable thread count
 - add custom error messages for invalud / missing arguments
+- add ramdon user agent argument

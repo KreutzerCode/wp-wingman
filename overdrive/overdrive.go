@@ -2,11 +2,10 @@ package overdrive
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"sync"
 	"wp-wingman/pluginVersion"
 	"wp-wingman/types"
+	"wp-wingman/utils"
 )
 
 var pluginsFoundOnTarget []types.PluginData
@@ -18,7 +17,7 @@ const numWorkers = 10
 func checkURL(pluginName string, resultsChannel chan<- types.PluginData) {
 	pluginsPrefix := "wp-content/plugins"
 	pluginSuffix := "readme.txt"
-	result, err := fetchReadme(fmt.Sprintf("%s/%s/%s/%s", wpURL, pluginsPrefix, pluginName, pluginSuffix))
+	result, err := utils.FetchReadme(fmt.Sprintf("%s/%s/%s/%s", wpURL, pluginsPrefix, pluginName, pluginSuffix))
 
 	if err != nil {
 		fmt.Println("\033[1;31mError checking Plugin: "+pluginName+"\033[0m\n", err)
@@ -38,25 +37,6 @@ func checkURL(pluginName string, resultsChannel chan<- types.PluginData) {
 	}
 
 	resultsChannel <- pluginData
-}
-
-func fetchReadme(url string) (interface{}, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return false, nil
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return string(body), nil
 }
 
 func worker(urlsToCheck <-chan string, resultsChannel chan<- types.PluginData) {
