@@ -32,3 +32,11 @@ jobs:
 
     - name: Build Binary for macOS
       run: GOOS=darwin GOARCH=amd64 go build -o wp-wingman main.go
+
+    - name: Upload binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: binaries
+        path: |
+          wp-wingman
+          wp-wingman.exe
