@@ -28,6 +28,7 @@ var (
 	saveResult      bool
 )
 var rateLimit int = 1
+var workerCount int = 10
 var maxStringLength int
 var currentPluginInCheckIndex int = 0
 var pluginNameListLength int = 0
@@ -35,8 +36,8 @@ var targetPluginTag string = "security"
 
 func init() {
 	flag.StringVar(&wpURL, "u", "", "wordpress url")
-	flag.StringVar(&rValue, "r", "", "rate limit on target (default 0-1s)")
 	flag.StringVar(&tFlagArgument, "t", "", "wordpress plugin tag (default securtiy but read the docs)")
+	flag.StringVar(&rValue, "r", "", "rate limit on target (default 0-1s)")
 	flag.IntVar(&wFlagArgument, "w", 10, "number of workers to execute playbook (only available in overdrive mode) (default 10)")
 	flag.BoolVar(&overdriveActive, "overdrive", false, "executes playbook with the boys (very aggressiv)")
 	flag.BoolVar(&savePlaybook, "save-playbook", false, "save collected plugins in file")
@@ -66,8 +67,15 @@ func main() {
 		fmt.Printf("\033[1;32mSet plugin tag to: %s\033[0m\n", targetPluginTag)
 	}
 
-	if wFlagArgument != 10 && overdriveActive {
-		fmt.Printf("\033[1;32mSet number of workers to: %d\033[0m\n", wFlagArgument)
+	if overdriveActive {
+		if wFlagArgument < 2 {
+			workerCount = 2
+		}
+
+		if wFlagArgument > 100 {
+			workerCount = 100
+		}
+		fmt.Printf("\033[1;32mSet number of workers to: %d\033[0m\n", workerCount)
 	}
 
 	StartWingmanJob()
@@ -181,7 +189,7 @@ func checkPluginsAvailability(url string, pluginNameList []string) []types.Plugi
 	pluginsFoundOnTarget := []types.PluginData{}
 
 	if overdriveActive {
-		pluginsFoundOnTarget = overdrive.CheckPluginsInOverdriveMode(url, maxStringLength, pluginNameList, wFlagArgument)
+		pluginsFoundOnTarget = overdrive.CheckPluginsInOverdriveMode(url, maxStringLength, pluginNameList, workerCount)
 	} else {
 		pluginsFoundOnTarget = checkPluginsInNormalMode(url, pluginNameList)
 	}

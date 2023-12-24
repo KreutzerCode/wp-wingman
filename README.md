@@ -84,6 +84,9 @@ If you want to fetch all public plugins, you can add the all argument `-t all`. 
 
 With the -w argument, you can specify the number of workers that process the playbook in parallel.
 
+- Min Value: 2
+- Min Value: 100
+
 ### Overdrive
 
 #### Argument: `--overdrive`
