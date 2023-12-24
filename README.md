@@ -56,7 +56,8 @@ Arguments:
         required: -u                    wordpress url
         optional: -t                    wordpress plugin tag (default securtiy)
         optional: -r                    rate limit on target (default 0-1s)
-        optional: --overdrive           check all public plugins on target (very aggressiv)
+        optional: -w                    number of workers to execute playbook (only available in overdrive mode) (default 10)
+        optional: --overdrive           executes playbook with the boys (very aggressiv)
         optional: --save-playbook       save collected plugins in file
         optional: --save-result         save plugins found on target in file
 
@@ -75,11 +76,23 @@ If you want to fetch all public plugins, you can add the all argument `-t all`. 
 
 **Tip**: use in combination with `--save-playbook` to skip waiting time in the next run
 
+### Workers
+
+#### Argument: `-w`
+
+**Important**: This argument is only valid in combination the `--overdrive` flag
+
+With the -w argument, you can specify the number of workers that process the playbook in parallel.
+
 ### Overdrive
 
 #### Argument: `--overdrive`
 
-In overdrive mode, the script gathers and evaluates all plugins accessible through the WordPress plugin API on the specified target. The collection process may take some time. During this mode, any default or custom rate limits are deactivated.
+**Important**: This mode is very aggressiv
+
+In overdrive mode, the wingman gathers his boys to work on the playbook in parallel. Please note that this can place an additional load on your and the target system.
+
+**Tip**: use in combination with `-w` to specify number of workers
 
 ### Save Playbook
 
@@ -101,6 +114,5 @@ With the argument `--save-result` the found plugins are saved in a file `wp-wing
 
 # TODO
 
-- rework overdrive mode to run multi threadet - with configurable thread count
 - add custom error messages for invalud / missing arguments
 - add ramdon user agent argument
