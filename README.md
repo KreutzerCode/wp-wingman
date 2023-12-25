@@ -25,27 +25,45 @@ The Purpose of this devensive Penetation testing tool to check every installed P
 
 This script is intended for security testing. Any use should be approved by the owner of the target website. Use the rate limiting options if you are concerned about the server load caused.
 
-## Requirements
-
-Ensure that you have the following dependencies installed:
-
-- curl
-- jq
-
 ## Install
 
+### Download
+
+1. **Navigate to the GitHub Repository:**
+   Open your web browser and go to the GitHub repository where the program is hosted.
+
+2. **Access the Actions Tab:**
+   In the repository, click on the "Actions" tab. This tab is usually located near the top of the repository, next to "Code," "Issues," and "Pull requests."
+
+3. **Select the Latest Workflow:**
+   Inside the Actions tab, you'll see a list of workflows. Choose the workflow that corresponds to the build or release process of the program. GitHub Actions typically build and publish artifacts in specific workflows.
+
+4. **View the Latest Run:**
+   Click on the latest workflow run to view its details. You'll find a list of individual jobs and their statuses.
+
+5. **Access the Artifacts:**
+   Look for the "Artifacts" section in the workflow run details. GitHub Actions often produce artifacts, which are files generated during the workflow. There might be a link to download the artifacts directly.
+
+6. **Download the Binary:**
+   If there is a direct download link for the binary or artifact, click on it to download the latest program binary to your local machine.
+
+We plab update the github action to add the build binaries to each release. At the moment there is only the inconviniet way.
+
+### Linux
+
 ```yaml
-git clone https://github.com/KreutzerCode/wp-wingman.git
-cd wp-wingman
-chmod -R 777 scan.sh
-./scan.sh
+$ cd /path/to/binary
+$ chmod -R 777 wp-wingman
+$ ./wp-wingman
 ```
 
 ## Usage
 
+### Linux
+
 ```yaml
-┌──(you㉿kali)-[~/Desktop/wp-wingman]
-└─$ ./scan.sh
+┌──(you㉿linux)-[~/Desktop]
+└─$ ./wp-wingman
 __        ______   __        _____ _   _  ____ __  __    _    _   _
 \ \      / /  _ \  \ \      / /_ _| \ | |/ ___|  \/  |  / \  | \ | |
  \ \ /\ / /| |_) |  \ \ /\ / / | ||  \| | |  _| |\/| | / _ \ |  \| |
