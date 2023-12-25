@@ -214,7 +214,7 @@ func checkPluginsInNormalMode(url string, pluginNameList []string) []types.Plugi
 			if found {
 				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found][%s]\033\n", maxStringLength, pluginName, versionData.Number)
 			} else {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[not found]\033\n", maxStringLength, pluginName)
+				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found]\033\n", maxStringLength, pluginName)
 			}
 			pluginsFoundOnTarget = append(pluginsFoundOnTarget, types.PluginData{Name: pluginName, Version: versionData.Number, Found: true})
 		} else {

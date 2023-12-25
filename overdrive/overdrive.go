@@ -79,7 +79,7 @@ func CheckPluginsInOverdriveMode(url string, maxPluginNameLength int, pluginName
 			if pluginData.Version != "" {
 				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%d/%d][found][%s]\033\n", maxStringLength, pluginData.Name, index, listLength, pluginData.Version)
 			} else {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%d/%d][not found]\033\n", maxStringLength, pluginData.Name, index, listLength)
+				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%d/%d][found]\033\n", maxStringLength, pluginData.Name, index, listLength)
 			}
 		}
 

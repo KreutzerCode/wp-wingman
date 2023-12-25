@@ -10,15 +10,16 @@ The WordPress Plugin Scanner designed for identifying any plugins on WordPress s
 
 ## Features
 
-- Fetches up-to-date plugin slugs from the WordPress Plugins API.
+- Fetches up-to-date plugin slugs from the WordPress plugins API.
 - Supports rate limiting to avoid excessive requests to the target site.
 - Checks for the existence of each plugin on the target WordPress site.
 - Possibility to save the plugin slugs collected via the Wordpress API in a file.
-- Provides a summary and the option to save the results in a file
+- Provides a summary and the option to save the results in a file.
+- Supports the parallel execution of plugin slug checks.
 
 ## Functionality
 
-The Purpose of this devensive Penetation testing tool to check every installed Plugin on a target system. It utilizes the WordPress Plugins API to fetch plugin slugs based on a specified tag. And runs it against the target system. The user can provide an optional rate limit for requests, and an optional plugin tag and other options to save the collected data or run the script in a specific mode.
+The Purpose of this devensive Penetation testing tool to check every installed Plugin on a target system. It utilizes the WordPress Plugins API to fetch plugin slugs based on a specified tag. And runs it against the target system. The user can specify optional arguments to change the plugin search or plugin check procedure.
 
 ## Intentions
 
@@ -67,6 +68,20 @@ Send over Wingman:
 Happy scanning!
 ```
 
+### Url
+
+#### Argument: `-u`
+
+With the -u argument you specify the url of the target system. Note that this is the only **required** argument.
+
+**Examples:**
+
+```
+$ ./wp-wingman -u www.example.com
+
+$ ./wp-wingman -u https://www.example.com
+```
+
 ### Tag
 
 #### Argument: `-t`
@@ -75,6 +90,14 @@ With the -t argument you can specify the target plugin group by searching for a 
 If you want to fetch all public plugins, you can add the all argument `-t all`. Be in mind that this takes a while.
 
 **Tip**: use in combination with `--save-playbook` to skip waiting time in the next run
+
+### Rate limit
+
+#### Argument: `-r`
+
+**Important**: This argument is only available in normal mode (not in overdrive mode)
+
+With the -r argument, you can specify the number of seconds to wait before the next plugin slug is checked on the target system.
 
 ### Workers
 
