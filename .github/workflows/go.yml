@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: linux-binary
-          path: wp-wingman-linux
+          path: wp-wingman
 
       - name: Upload Windows binary
         uses: actions/upload-artifact@v2
