@@ -2,41 +2,55 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.20'
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
 
-    - name: Build
-      run: go build -v ./...
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
 
-    - name: Test
-      run: go test -v ./...
+      - name: Build
+        run: go build -v ./...
 
-    - name: Build Binary for Linux
-      run: GOOS=linux GOARCH=amd64 go build -o wp-wingman main.go
+      - name: Test
+        run: go test -v ./...
 
-    - name: Build Binary for Windows
-      run: GOOS=windows GOARCH=amd64 go build -o wp-wingman.exe main.go
+      - name: Build Binary for Linux
+        run: GOOS=linux GOARCH=amd64 go build -o wp-wingman main.go
 
-    - name: Build Binary for macOS
-      run: GOOS=darwin GOARCH=amd64 go build -o wp-wingman main.go
+      - name: Build Binary for Windows
+        run: GOOS=windows GOARCH=amd64 go build -o wp-wingman.exe main.go
 
-    - name: Upload binaries
-      uses: actions/upload-artifact@v2
-      with:
-        name: binaries
-        path: |
-          wp-wingman
-          wp-wingman.exe
+      - name: Build Binary for macOS
+        run: GOOS=darwin GOARCH=amd64 go build -o wp-wingman main.go
+
+      - name: Upload Linux binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-binary
+          path: wp-wingman-linux
+
+      - name: Upload Windows binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-binary
+          path: wp-wingman-windows.exe
+
+      - name: Upload Mac binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: mac-binary
+          path: wp-wingman-mac
