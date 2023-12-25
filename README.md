@@ -47,7 +47,7 @@ This script is intended for security testing. Any use should be approved by the 
 6. **Download the Binary:**
    If there is a direct download link for the binary or artifact, click on it to download the latest program binary to your local machine.
 
-We plab update the github action to add the build binaries to each release. At the moment there is only the inconviniet way.
+We plan to update the github action to add the build binaries to each release. At the moment there is only the inconviniet way.
 
 ### Linux
 
