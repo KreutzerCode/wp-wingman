@@ -12,15 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "16"
-
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
+          go-version: '1.20' # specify the Go version
 
       - name: Build
         run: go build -v ./...
@@ -31,8 +26,22 @@ jobs:
       - name: Build Binary for Linux
         run: GOOS=linux GOARCH=amd64 go build -o wp-wingman main.go
 
-      - name: Upload Linux binary
-        uses: actions/upload-artifact@v2
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Get latest release
+        id: latest_release
+        run: |
+          LATEST_RELEASE=$(curl --silent "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r .upload_url | cut -d "{" -f 1)
+          echo "::set-output name=upload_url::$LATEST_RELEASE"
+
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: linux-binary
-          path: wp-wingman
+          upload_url: ${{ steps.latest_release.outputs.upload_url }} 
+          asset_path: ./wp-wingman
+          asset_name: wp-wingman
+          asset_content_type: application/octet-stream
