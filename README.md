@@ -155,11 +155,3 @@ With the argument `--save-result` the found plugins are saved in a file `wp-wing
 ## Example output
 
 ![example output](./img/example_usage.png)
-
-# TODO
-
-- add custom error messages for invalud / missing arguments
-- add ramdom user agent argument
-- add SECURITY.md
-- rework release pipeline
-- add method to reliable check for premium versions of plugins
