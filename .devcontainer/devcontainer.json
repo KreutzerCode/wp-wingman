@@ -1,0 +1,7 @@
+{
+  "name": "wp-wingman",
+  "dockerFile": "Dockerfile",
+  "forwardPorts": [8080],
+  "extensions": ["golang.Go"],
+  "context": ".."
+}
