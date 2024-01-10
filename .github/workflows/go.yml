@@ -32,7 +32,7 @@ jobs:
       - name: Get latest release
         id: latest_release
         run: |
-          LATEST_RELEASE=$(curl --silent "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r .upload_url | cut -d "{" -f 1)
+          LATEST_RELEASE=$(curl --silent -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r .upload_url | cut -d "{" -f 1)
           echo "::set-output name=upload_url::$LATEST_RELEASE"
 
       - name: Upload Release Asset
