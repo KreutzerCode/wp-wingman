@@ -10,13 +10,14 @@ import (
 
 var pluginsFoundOnTarget []types.PluginData
 var wpURL string
+var useRandomUserAgent bool
 var maxStringLength int = 0
 var numWorkers = 10
 
 func checkURL(pluginName string, resultsChannel chan<- types.PluginData) {
 	pluginsPrefix := "wp-content/plugins"
 	pluginSuffix := "readme.txt"
-	result, err := utils.FetchReadme(fmt.Sprintf("%s/%s/%s/%s", wpURL, pluginsPrefix, pluginName, pluginSuffix))
+	result, err := utils.FetchReadme(fmt.Sprintf("%s/%s/%s/%s", wpURL, pluginsPrefix, pluginName, pluginSuffix), useRandomUserAgent)
 
 	if err != nil {
 		fmt.Println("\033[1;31mError checking Plugin: "+pluginName+"\033[0m\n", err)
@@ -44,7 +45,7 @@ func worker(urlsToCheck <-chan string, resultsChannel chan<- types.PluginData) {
 	}
 }
 
-func CheckPluginsInOverdriveMode(url string, maxPluginNameLength int, pluginNameList []string, numberOfWorkers int) []types.PluginData {
+func CheckPluginsInOverdriveMode(url string, maxPluginNameLength int, pluginNameList []string, numberOfWorkers int, randomUserAgent bool) []types.PluginData {
 	urlsToCheck := pluginNameList
 	numWorkers = numberOfWorkers
 	listLength := len(urlsToCheck)
@@ -53,6 +54,7 @@ func CheckPluginsInOverdriveMode(url string, maxPluginNameLength int, pluginName
 	urlsToCheckChannel := make(chan string, listLength)
 	maxStringLength = maxPluginNameLength
 	wpURL = url
+	useRandomUserAgent = randomUserAgent
 
 	for i := 0; i < numWorkers; i++ {
 		go worker(urlsToCheckChannel, resultsChannel)

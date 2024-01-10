@@ -33,6 +33,8 @@ var maxStringLength int
 var currentPluginInCheckIndex int = 0
 var pluginNameListLength int = 0
 var targetPluginTag string = "security"
+var useRandomUserAgent bool
+var usingPlaybookFromFile bool = false
 
 func init() {
 	flag.StringVar(&wpURL, "u", "", "wordpress url")
@@ -42,6 +44,7 @@ func init() {
 	flag.BoolVar(&overdriveActive, "overdrive", false, "executes playbook with the boys (very aggressiv)")
 	flag.BoolVar(&savePlaybook, "save-playbook", false, "save collected plugins in file")
 	flag.BoolVar(&saveResult, "save-result", false, "save plugins found on target in file")
+	flag.BoolVar(&useRandomUserAgent, "user-agent", false, "use random user agent for every request")
 
 	flag.Parse()
 }
@@ -78,12 +81,25 @@ func main() {
 		fmt.Printf("\033[1;32mSet number of workers to: %d\033[0m\n", workerCount)
 	}
 
+	if useRandomUserAgent {
+		fmt.Printf("\033[1;32mUse random user agent: %s\033[0m\n", strconv.FormatBool(useRandomUserAgent))
+	}
+
 	StartWingmanJob()
 }
 
 func helpMenu() {
-	fmt.Println("\033[1;33mArguments:\n\t\033[1;31mrequired:\033[1;33m -u\t\t\twordpress url\033[1;33m\n\t\033[1;34moptional:\033[1;33m -t\t\t\twordpress plugin tag (default securtiy but read the docs)\t\t\t\n\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\033[1;34moptional:\033[1;33m -w\t\t\tnumber of workers to execute playbook (only available in overdrive mode)\n\t\033[1;34moptional:\033[1;33m --overdrive\t\texecutes playbook with the boys (very aggressiv)\n\t\033[1;34moptional:\033[1;33m --save-playbook\tsave collected plugins in file\n\t\033[1;34moptional:\033[1;33m --save-result\t\tsave plugins found on target in file\n\t\033[1;33m")
-	fmt.Println("Send over Wingman:\n./wp-wingman -u www.example.com -r 5 -t newsletter \033[1;32m")
+    fmt.Println("\033[1;33mArguments:")
+    fmt.Println("\t\033[1;31mrequired:\033[1;33m -u\t\t\twordpress url")
+    fmt.Println("\t\033[1;34moptional:\033[1;33m -t\t\t\twordpress plugin tag (default security but read the docs)")
+    fmt.Println("\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0-1s)")
+    fmt.Println("\t\033[1;34moptional:\033[1;33m -w\t\t\tnumber of workers to execute playbook (only available in overdrive mode)")
+    fmt.Println("\t\033[1;34moptional:\033[1;33m --overdrive\t\texecutes playbook with the boys (very aggressive)")
+    fmt.Println("\t\033[1;34moptional:\033[1;33m --save-playbook\tsave collected plugins in file")
+    fmt.Println("\t\033[1;34moptional:\033[1;33m --save-result\t\tsave plugins found on target in file")
+    fmt.Println("\t\033[1;34moptional:\033[1;33m --user-agent\t\tuse random user agent for every request")
+    fmt.Println("\nSend over Wingman:")
+    fmt.Println("./wp-wingman -u www.example.com -r 5 -t newsletter \033[1;32m")
 }
 
 func printLogo() {
@@ -124,7 +140,7 @@ func determineMaxStringLength(list []string) int {
 }
 
 func StartWingmanJob() {
-	result := wordpressFinder.IsWordpressSite(wpURL)
+	result := wordpressFinder.IsWordpressSite(wpURL, useRandomUserAgent)
 
 	if result == false {
 		fmt.Println("\033[1;31mThe URL is not a WordPress site.\033[0m")
@@ -138,7 +154,7 @@ func StartWingmanJob() {
 	pluginNameListLength = len(pluginNameList)
 	maxStringLength = determineMaxStringLength(pluginNameList)
 
-	if savePlaybook == true {
+	if savePlaybook == true && usingPlaybookFromFile == false {
 		fileName := fmt.Sprintf("wp-wingman-%s.txt", targetPluginTag)
 		fileManager.SavePlaybookToFile(pluginNameList, fileName)
 	}
@@ -172,7 +188,7 @@ func getPluginSlugList() []string {
 		answer, _ := reader.ReadString('\n')
 		if answer == "y\n" {
 			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromFile(targetPluginTag)
-
+			usingPlaybookFromFile = true
 		} else {
 			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromAPI(targetPluginTag)
 		}
@@ -189,20 +205,20 @@ func checkPluginsAvailability(url string, pluginNameList []string) []types.Plugi
 	pluginsFoundOnTarget := []types.PluginData{}
 
 	if overdriveActive {
-		pluginsFoundOnTarget = overdrive.CheckPluginsInOverdriveMode(url, maxStringLength, pluginNameList, workerCount)
+		pluginsFoundOnTarget = overdrive.CheckPluginsInOverdriveMode(url, maxStringLength, pluginNameList, workerCount, useRandomUserAgent)
 	} else {
-		pluginsFoundOnTarget = checkPluginsInNormalMode(url, pluginNameList)
+		pluginsFoundOnTarget = checkPluginsInNormalMode(url, pluginNameList, useRandomUserAgent)
 	}
 
 	return pluginsFoundOnTarget
 }
 
-func checkPluginsInNormalMode(url string, pluginNameList []string) []types.PluginData {
+func checkPluginsInNormalMode(url string, pluginNameList []string, randomUserAgent bool) []types.PluginData {
 	pluginsPrefix := "wp-content/plugins"
 	pluginSuffix := "readme.txt"
 	pluginsFoundOnTarget := []types.PluginData{}
 	for _, pluginName := range pluginNameList {
-		result, err := utils.FetchReadme(fmt.Sprintf("%s/%s/%s/%s", url, pluginsPrefix, pluginName, pluginSuffix))
+		result, err := utils.FetchReadme(fmt.Sprintf("%s/%s/%s/%s", url, pluginsPrefix, pluginName, pluginSuffix), randomUserAgent)
 
 		if err != nil {
 			fmt.Println("\033[1;31mError checking Plugin: "+pluginName+"\033[0m\n", err)
@@ -222,8 +238,11 @@ func checkPluginsInNormalMode(url string, pluginNameList []string) []types.Plugi
 		}
 
 		currentPluginInCheckIndex++
-		// Introduce a rate limit between 0 and X seconds
-		time.Sleep(time.Duration(rand.Intn(rateLimit)) * time.Second)
+
+		if rateLimit > 0 {
+			// Introduce a rate limit between 0 and X seconds
+			time.Sleep(time.Duration(rand.Intn(rateLimit)) * time.Second)
+		}
 	}
 
 	return pluginsFoundOnTarget
