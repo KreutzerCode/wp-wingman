@@ -34,6 +34,7 @@ var currentPluginInCheckIndex int = 0
 var pluginNameListLength int = 0
 var targetPluginTag string = "security"
 var useRandomUserAgent bool
+var usingPlaybookFromFile bool = false
 
 func init() {
 	flag.StringVar(&wpURL, "u", "", "wordpress url")
@@ -153,7 +154,7 @@ func StartWingmanJob() {
 	pluginNameListLength = len(pluginNameList)
 	maxStringLength = determineMaxStringLength(pluginNameList)
 
-	if savePlaybook == true {
+	if savePlaybook == true && usingPlaybookFromFile == false {
 		fileName := fmt.Sprintf("wp-wingman-%s.txt", targetPluginTag)
 		fileManager.SavePlaybookToFile(pluginNameList, fileName)
 	}
@@ -187,7 +188,7 @@ func getPluginSlugList() []string {
 		answer, _ := reader.ReadString('\n')
 		if answer == "y\n" {
 			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromFile(targetPluginTag)
-
+			usingPlaybookFromFile = true
 		} else {
 			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromAPI(targetPluginTag)
 		}
