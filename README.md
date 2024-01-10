@@ -47,7 +47,7 @@ This script is intended for security testing. Any use should be approved by the 
 6. **Download the Binary:**
    If there is a direct download link for the binary or artifact, click on it to download the latest program binary to your local machine.
 
-We plan to update the github action to add the build binaries to each release. At the moment there is only the inconviniet way.
+**We plan to update the github action to add the build binaries to each release. At the moment there is only the inconviniet way.**
 
 ### Linux
 
@@ -81,7 +81,7 @@ Arguments:
         optional: --save-result         save plugins found on target in file
 
 Send over Wingman:
-./scan.sh -u www.example.com -r 5 -t newsletter
+./wp-wingman -u www.example.com -r 5 -t newsletter
 
 Happy scanning!
 ```
@@ -159,4 +159,7 @@ With the argument `--save-result` the found plugins are saved in a file `wp-wing
 # TODO
 
 - add custom error messages for invalud / missing arguments
-- add ramdon user agent argument
+- add ramdom user agent argument
+- add SECURITY.md
+- rework release pipeline
+- add method to reliable check for premium versions of plugins

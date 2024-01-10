@@ -83,7 +83,7 @@ func main() {
 
 func helpMenu() {
 	fmt.Println("\033[1;33mArguments:\n\t\033[1;31mrequired:\033[1;33m -u\t\t\twordpress url\033[1;33m\n\t\033[1;34moptional:\033[1;33m -t\t\t\twordpress plugin tag (default securtiy but read the docs)\t\t\t\n\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0-1s)\n\t\033[1;34moptional:\033[1;33m -w\t\t\tnumber of workers to execute playbook (only available in overdrive mode)\n\t\033[1;34moptional:\033[1;33m --overdrive\t\texecutes playbook with the boys (very aggressiv)\n\t\033[1;34moptional:\033[1;33m --save-playbook\tsave collected plugins in file\n\t\033[1;34moptional:\033[1;33m --save-result\t\tsave plugins found on target in file\n\t\033[1;33m")
-	fmt.Println("Send over Wingman:\n./scan.sh -u www.example.com -r 5 -t newsletter \033[1;32m")
+	fmt.Println("Send over Wingman:\n./wp-wingman -u www.example.com -r 5 -t newsletter \033[1;32m")
 }
 
 func printLogo() {
