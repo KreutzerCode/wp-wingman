@@ -35,6 +35,16 @@ jobs:
           LATEST_RELEASE=$(curl --silent -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r .upload_url | cut -d "{" -f 1)
           echo "::set-output name=upload_url::$LATEST_RELEASE"
 
+      - name: Get asset ID
+        id: get_asset_id
+        run: |
+          ASSET_ID=$(curl --silent -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/assets" | jq '.[] | select(.name=="wp-wingman") | .id')
+          echo "::set-output name=asset_id::$ASSET_ID"
+
+      - name: Delete existing asset
+        run: |
+          curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/assets/${{ steps.get_asset_id.outputs.asset_id }}"
+
       - name: Upload Release Asset
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
