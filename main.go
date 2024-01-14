@@ -16,6 +16,7 @@ import (
 	"wp-wingman/types"
 	"wp-wingman/utils"
 	"wp-wingman/wordpressFinder"
+	"io/ioutil"
 )
 
 var (
@@ -37,16 +38,26 @@ var useRandomUserAgent bool
 var usingPlaybookFromFile bool = false
 
 func init() {
-	flag.StringVar(&wpURL, "u", "", "wordpress url")
-	flag.StringVar(&tFlagArgument, "t", "", "wordpress plugin tag (default securtiy but read the docs)")
-	flag.StringVar(&rValue, "r", "", "rate limit on target (default 0-1s)")
-	flag.IntVar(&wFlagArgument, "w", 10, "number of workers to execute playbook (only available in overdrive mode) (default 10)")
-	flag.BoolVar(&overdriveActive, "overdrive", false, "executes playbook with the boys (very aggressiv)")
-	flag.BoolVar(&savePlaybook, "save-playbook", false, "save collected plugins in file")
-	flag.BoolVar(&saveResult, "save-result", false, "save plugins found on target in file")
-	flag.BoolVar(&useRandomUserAgent, "user-agent", false, "use random user agent for every request")
+	flagSet := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+    flagSet.SetOutput(ioutil.Discard) // Suppress default error messages
 
-	flag.Parse()
+    flagSet.StringVar(&wpURL, "u", "", "wordpress url")
+    flagSet.StringVar(&tFlagArgument, "t", "", "wordpress plugin tag (default securtiy but read the docs)")
+    flagSet.StringVar(&rValue, "r", "", "rate limit on target (default 0-1s)")
+    flagSet.IntVar(&wFlagArgument, "w", 10, "number of workers to execute playbook (only available in overdrive mode) (default 10)")
+    flagSet.BoolVar(&overdriveActive, "overdrive", false, "executes playbook with the boys (very aggressiv)")
+    flagSet.BoolVar(&savePlaybook, "save-playbook", false, "save collected plugins in file")
+    flagSet.BoolVar(&saveResult, "save-result", false, "save plugins found on target in file")
+    flagSet.BoolVar(&useRandomUserAgent, "user-agent", false, "use random user agent for every request")
+
+    flagSet.Usage = func() {
+		printLogo()
+		helpMenu()
+		fmt.Printf("\n\033[1;31mError: check input for invalid arguments\033[0m\n")
+        os.Exit(0)
+    }
+
+    flagSet.Parse(os.Args[1:])
 }
 
 func main() {
@@ -59,25 +70,21 @@ func main() {
 	}
 
 	if rValue != "" && !overdriveActive {
-		// set global variable named rate limit to the value provided
 		rateLimit, _ = strconv.Atoi(rValue)
 		fmt.Printf("\033[1;32mSet rate limit to: %s\033[0m\n", rValue)
 	}
 
 	if tFlagArgument != "" {
-		// set global variable named target plugin tag to the value provided
 		targetPluginTag = tFlagArgument
 		fmt.Printf("\033[1;32mSet plugin tag to: %s\033[0m\n", targetPluginTag)
 	}
 
 	if overdriveActive {
-		if wFlagArgument < 2 {
+		workerCount = wFlagArgument
+		if workerCount < 2 {
 			workerCount = 2
 		}
-
-		if wFlagArgument > 100 {
-			workerCount = 100
-		}
+		
 		fmt.Printf("\033[1;32mSet number of workers to: %d\033[0m\n", workerCount)
 	}
 

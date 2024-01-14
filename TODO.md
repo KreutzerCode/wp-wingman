@@ -1,6 +1,6 @@
 # TODO
 
-- [ ] Add custom error messages for invalid / missing arguments
+- [x] Add custom error messages for invalid / missing arguments
 - [x] Add random user agent argument
 - [x] Add SECURITY.md
 - [ ] Rework release pipeline
