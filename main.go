@@ -4,20 +4,18 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"math/rand"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 	"wp-wingman/fileManager"
-	"wp-wingman/printManager"
-	"wp-wingman/overdrive"
+	"wp-wingman/pluginFinder/normalMode"
+	"wp-wingman/pluginFinder/overdriveMode"
 	"wp-wingman/pluginSlugLoader"
-	"wp-wingman/pluginVersion"
+	"wp-wingman/printManager"
+	"wp-wingman/store"
 	"wp-wingman/types"
-	"wp-wingman/utils"
 	"wp-wingman/wordpressFinder"
-	"io/ioutil"
 )
 
 var (
@@ -31,8 +29,6 @@ var (
 )
 var rateLimit int = 1
 var workerCount int = 10
-var maxStringLength int
-var currentPluginInCheckIndex int = 0
 var pluginNameListLength int = 0
 var targetPluginTag string = "security"
 var useRandomUserAgent bool
@@ -120,7 +116,7 @@ func StartWingmanJob() {
 
 	pluginNameList := getPluginSlugList()
 	pluginNameListLength = len(pluginNameList)
-	maxStringLength = determineMaxStringLength(pluginNameList)
+	store.MaxStringLength = determineMaxStringLength(pluginNameList)
 
 	if savePlaybook == true && usingPlaybookFromFile == false {
 		fileName := fmt.Sprintf("wp-wingman-%s.txt", targetPluginTag)
@@ -135,9 +131,13 @@ func StartWingmanJob() {
 		os.Exit(0)
 	}
 
-	pluginsFoundOnTarget := checkPluginsAvailability(wpURL, pluginNameList)
+	var pluginsFoundOnTarget = checkPluginsAvailability(wpURL, pluginNameList)
+	//TODO fix problem detecting premium plugins (no readme found)
+	//missingPlugins := passivDetector.FindPluginsInContent(wpURL, pluginsFoundOnTarget, useRandomUserAgent, rateLimit)
+	// Append the missing plugins to the pluginsFoundOnTarget slice
+	//pluginsFoundOnTarget = append(pluginsFoundOnTarget, missingPlugins...)
 
-	printManager.PrintResult(pluginsFoundOnTarget, maxStringLength)
+	printManager.PrintResult(pluginsFoundOnTarget)
 
 	if saveResult {
 		fileName := strings.Split(strings.Split(wpURL, "//")[1], "/")[0]
@@ -170,47 +170,12 @@ func getPluginSlugList() []string {
 func checkPluginsAvailability(url string, pluginNameList []string) []types.PluginData {
 	fmt.Println("\n\033[1;33m[+] Let me check this for you:\n\033")
 
-	pluginsFoundOnTarget := []types.PluginData{}
+	var pluginsFoundOnTarget = []types.PluginData{}
 
 	if overdriveActive {
-		pluginsFoundOnTarget = overdrive.CheckPluginsInOverdriveMode(url, maxStringLength, pluginNameList, workerCount, useRandomUserAgent)
+		pluginsFoundOnTarget = overdriveMode.CheckPluginsInOverdriveMode(url, pluginNameList, workerCount, useRandomUserAgent)
 	} else {
-		pluginsFoundOnTarget = checkPluginsInNormalMode(url, pluginNameList, useRandomUserAgent)
-	}
-
-	return pluginsFoundOnTarget
-}
-
-func checkPluginsInNormalMode(url string, pluginNameList []string, randomUserAgent bool) []types.PluginData {
-	pluginsPrefix := "wp-content/plugins"
-	pluginSuffix := "readme.txt"
-	pluginsFoundOnTarget := []types.PluginData{}
-	for _, pluginName := range pluginNameList {
-		result, err := utils.FetchReadme(fmt.Sprintf("%s/%s/%s/%s", url, pluginsPrefix, pluginName, pluginSuffix), randomUserAgent)
-
-		if err != nil {
-			fmt.Println("\033[1;31mError checking Plugin: "+pluginName+"\033[0m\n", err)
-			continue
-		}
-
-		if content, ok := result.(string); ok {
-			versionData, found := pluginVersion.GetPluginVersion(content)
-			if found {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found][%s]\033\n", maxStringLength, pluginName, versionData.Number)
-			} else {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found]\033\n", maxStringLength, pluginName)
-			}
-			pluginsFoundOnTarget = append(pluginsFoundOnTarget, types.PluginData{Name: pluginName, Version: versionData.Number, Found: true})
-		} else {
-			fmt.Printf("\033[K\033[1;34m%-*s\033[0m \033[1;34m[ok][%d/%d]\033[0m\r", maxStringLength, pluginName, currentPluginInCheckIndex+1, pluginNameListLength)
-		}
-
-		currentPluginInCheckIndex++
-
-		if rateLimit > 0 {
-			// Introduce a rate limit between 0 and X seconds
-			time.Sleep(time.Duration(rand.Intn(rateLimit)) * time.Second)
-		}
+		pluginsFoundOnTarget = normalMode.CheckPluginsInNormalMode(url, pluginNameList, useRandomUserAgent, rateLimit)
 	}
 
 	return pluginsFoundOnTarget
