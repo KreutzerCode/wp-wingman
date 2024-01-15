@@ -13,19 +13,19 @@ type VersionNumber struct {
 }
 
 func GetPluginVersion(readmeContent string) (VersionNumber, bool) {
-	versionData, found := VersionNumbers(readmeContent)
+	versionData, found := versionNumbers(readmeContent)
 	return versionData, found
 }
 
 // VersionNumbers extracts version numbers from the body and returns the first one found along with its source and confidence.
 // It also returns a boolean indicating whether a version number was found.
-func VersionNumbers(body string) (VersionNumber, bool) {
-	number := FromStableTag(body)
+func versionNumbers(body string) (VersionNumber, bool) {
+	number := fromStableTag(body)
 	if number != "" {
 		return VersionNumber{Number: number, FoundBy: "Stable Tag"}, true
 	}
 
-	number = FromChangelogSection(body)
+	number = fromChangelogSection(body)
 	if number != "" {
 		return VersionNumber{Number: number, FoundBy: "ChangeLog Section"}, true
 	}
@@ -35,7 +35,7 @@ func VersionNumbers(body string) (VersionNumber, bool) {
 
 // FromStableTag extracts the version number from the stable tag in the body.
 // It returns the version number if found, or an empty string if not found.
-func FromStableTag(body string) string {
+func fromStableTag(body string) string {
 	re := regexp.MustCompile(`(?i)\b(?:stable tag|version):\s*([0-9a-z.-]+)`)
 	matches := re.FindStringSubmatch(body)
 	if len(matches) < 2 || matches[1] == "trunk" {
@@ -50,7 +50,7 @@ func FromStableTag(body string) string {
 	return ""
 }
 
-func FromChangelogSection(body string) string {
+func fromChangelogSection(body string) string {
 	re := regexp.MustCompile(`(?i)^=+\s+(?:v(?:ersion)?\s*)?([0-9.-]+)[^=]*=+$`)
 	matches := re.FindAllStringSubmatch(body, -1)
 

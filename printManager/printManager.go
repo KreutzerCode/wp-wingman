@@ -2,6 +2,7 @@ package printManager
 
 import (
 	"fmt"
+	"wp-wingman/store"
 	"wp-wingman/types"
 )
 
@@ -30,13 +31,13 @@ func PrintLogo() {
 		"\033[0m")
 }
 
-func PrintResult(pluginsFoundOnTarget []types.PluginData, maxStringLength int) {
+func PrintResult(pluginsFoundOnTarget []types.PluginData) {
 	fmt.Println("\n\n\n\033[1;32mDone.\n\033[0m")
 	fmt.Println("\033[1;32mSummary:\n\033[0m")
 
 	if len(pluginsFoundOnTarget) != 0 {
 		for _, pluginData := range pluginsFoundOnTarget {
-			fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found][%s]\033[0m\n", maxStringLength, pluginData.Name, pluginData.Version)
+			fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found][%s]\033[0m\n", store.MaxStringLength, pluginData.Name, pluginData.Version)
 		}
 
 		fmt.Println("\n\033[1;32mThese are my findings. Good luck sir!\033[0m")
