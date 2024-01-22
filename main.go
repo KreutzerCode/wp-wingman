@@ -65,25 +65,24 @@ func main() {
 		os.Exit(0)
 	}
 
-	//Todo anpassen
-	if rValue != "" && !overdriveActive {
+	if rValue != "" {
 		rateLimit, _ = strconv.Atoi(rValue)
+		workerCount = 1
 		fmt.Printf("\033[1;32mSet rate limit to: %s\033[0m\n", rValue)
+	}
+
+	if rValue == "" {
+		workerCount = wFlagArgument
+		if workerCount < 1 {
+			workerCount = 1
+		}
+		
+		fmt.Printf("\033[1;32mSet number of workers to: %d\033[0m\n", workerCount)
 	}
 
 	if tFlagArgument != "" {
 		targetPluginTag = tFlagArgument
 		fmt.Printf("\033[1;32mSet plugin tag to: %s\033[0m\n", targetPluginTag)
-	}
-
-	if overdriveActive {
-		//todo anpassen
-		workerCount = wFlagArgument
-		if workerCount < 2 {
-			workerCount = 2
-		}
-		
-		fmt.Printf("\033[1;32mSet number of workers to: %d\033[0m\n", workerCount)
 	}
 
 	if useRandomUserAgent {
