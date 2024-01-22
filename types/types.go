@@ -14,3 +14,8 @@ type PluginInfo struct {
 		Slug string `json:"slug"`
 	} `json:"plugins"`
 }
+
+type VersionNumber struct {
+	Number  string
+	FoundBy string
+}

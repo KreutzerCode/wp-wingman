@@ -4,33 +4,28 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"wp-wingman/types"
 )
 
-// VersionNumber is a struct that holds a version number, the source of the version number, and the confidence.
-type VersionNumber struct {
-	Number  string
-	FoundBy string
-}
-
-func GetPluginVersion(readmeContent string) (VersionNumber, bool) {
+func GetPluginVersion(readmeContent string) (types.VersionNumber, bool) {
 	versionData, found := versionNumbers(readmeContent)
 	return versionData, found
 }
 
 // VersionNumbers extracts version numbers from the body and returns the first one found along with its source and confidence.
 // It also returns a boolean indicating whether a version number was found.
-func versionNumbers(body string) (VersionNumber, bool) {
+func versionNumbers(body string) (types.VersionNumber, bool) {
 	number := fromStableTag(body)
 	if number != "" {
-		return VersionNumber{Number: number, FoundBy: "Stable Tag"}, true
+		return types.VersionNumber{Number: number, FoundBy: "Stable Tag"}, true
 	}
 
 	number = fromChangelogSection(body)
 	if number != "" {
-		return VersionNumber{Number: number, FoundBy: "ChangeLog Section"}, true
+		return types.VersionNumber{Number: number, FoundBy: "ChangeLog Section"}, true
 	}
 
-	return VersionNumber{}, false
+	return types.VersionNumber{}, false
 }
 
 // FromStableTag extracts the version number from the stable tag in the body.

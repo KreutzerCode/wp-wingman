@@ -1,7 +1,6 @@
 package passivDetector
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -28,7 +27,6 @@ func returnPluginsThatAreNotFoundAlready(uniqueMatches map[string]bool, pluginsF
     // Add each unique, stripped match that is not present in the PluginData list to the missingPlugins slice
     for match := range uniqueMatches {
         if !pluginDataMap[match] {
-			fmt.Println(match)
 			missingPlugins = append(missingPlugins, match)
         }
     }
@@ -38,7 +36,6 @@ func returnPluginsThatAreNotFoundAlready(uniqueMatches map[string]bool, pluginsF
 }
 
 func findPluginsInContent(url string)map[string]bool {
-	fmt.Println("Checking for plugins...")
 	matches := getPluginSlugsFromContent(url)
 
     // Use a map to filter out duplicate entries

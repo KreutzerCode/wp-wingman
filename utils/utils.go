@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"bufio"
 	"io"
 	"math/rand"
 	"net/http"
+	"os"
+	"time"
 )
 
 var userAgents = []string{
@@ -21,6 +24,32 @@ var userAgents = []string{
 	"Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109",
 	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109",
 	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/80.0.361.109",
+}
+
+func DoesRemoteFileExist(url string, useRandomUserAgent bool) (bool, error) {
+	client := &http.Client{}
+    req, err := http.NewRequest("GET", url, nil)
+    if err != nil {
+        return false, err
+    }
+
+    if useRandomUserAgent {
+        rand.Seed(time.Now().Unix())
+        randomUserAgent := userAgents[rand.Intn(len(userAgents))]
+        req.Header.Set("User-Agent", randomUserAgent)
+    }
+
+    resp, err := client.Do(req)
+    if err != nil {
+        return false, err
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
+        return true, nil
+    } else {
+        return false, nil
+    }
 }
 
 func FetchReadme(url string, useRandomUserAgent bool) (interface{}, error) {
@@ -68,6 +97,16 @@ func TestUrlForAvailability(url string, useRandomUserAgent bool) bool {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
+		return true
+	} else {
+		return false
+	}
+}
+
+func GetUserInputYesNo() bool {
+	reader := bufio.NewReader(os.Stdin)
+	answer, _ := reader.ReadString('\n')
+	if answer == "y\n" {
 		return true
 	} else {
 		return false

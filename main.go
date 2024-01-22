@@ -1,20 +1,21 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strconv"
 	"strings"
 	"wp-wingman/fileManager"
+	"wp-wingman/passivDetector"
 	"wp-wingman/pluginFinder/normalMode"
 	"wp-wingman/pluginFinder/overdriveMode"
 	"wp-wingman/pluginSlugLoader"
 	"wp-wingman/printManager"
 	"wp-wingman/store"
 	"wp-wingman/types"
+	"wp-wingman/utils"
 	"wp-wingman/wordpressFinder"
 )
 
@@ -29,14 +30,13 @@ var (
 )
 var rateLimit int = 1
 var workerCount int = 10
-var pluginNameListLength int = 0
 var targetPluginTag string = "security"
 var useRandomUserAgent bool
 var usingPlaybookFromFile bool = false
 
 func init() {
 	flagSet := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-    flagSet.SetOutput(ioutil.Discard) // Suppress default error messages
+    flagSet.SetOutput(io.Discard) // Suppress default error messages
 
     flagSet.StringVar(&wpURL, "u", "", "wordpress url")
     flagSet.StringVar(&tFlagArgument, "t", "", "wordpress plugin tag (default securtiy but read the docs)")
@@ -106,7 +106,7 @@ func determineMaxStringLength(list []string) int {
 func StartWingmanJob() {
 	result := wordpressFinder.IsWordpressSite(wpURL, useRandomUserAgent)
 
-	if result == false {
+	if !result {
 		fmt.Println("\033[1;31mThe URL is not a WordPress site.\033[0m")
 		fmt.Println("\033[1;31m" + wpURL + "\033[0m")
 		os.Exit(0)
@@ -115,27 +115,27 @@ func StartWingmanJob() {
 	fmt.Println("\033[1;32mWordPress site detected: " + wpURL + "\033[0m")
 
 	pluginNameList := getPluginSlugList()
-	pluginNameListLength = len(pluginNameList)
 	store.MaxStringLength = determineMaxStringLength(pluginNameList)
 
-	if savePlaybook == true && usingPlaybookFromFile == false {
+	if savePlaybook && !usingPlaybookFromFile {
 		fileName := fmt.Sprintf("wp-wingman-%s.txt", targetPluginTag)
 		fileManager.SavePlaybookToFile(pluginNameList, fileName)
 	}
 
 	fmt.Println("\033[1;33mDo you want me to start? (y/n)\033[0m")
-	reader := bufio.NewReader(os.Stdin)
-	answer, _ := reader.ReadString('\n')
-	if answer != "y\n" {
+	if !utils.GetUserInputYesNo() {
 		fmt.Println("\033[1;32mPuuh, okey bye.\033[0m")
 		os.Exit(0)
 	}
 
 	var pluginsFoundOnTarget = checkPluginsAvailability(wpURL, pluginNameList)
-	//TODO fix problem detecting premium plugins (no readme found)
-	//missingPlugins := passivDetector.FindPluginsInContent(wpURL, pluginsFoundOnTarget, useRandomUserAgent, rateLimit)
-	// Append the missing plugins to the pluginsFoundOnTarget slice
-	//pluginsFoundOnTarget = append(pluginsFoundOnTarget, missingPlugins...)
+
+	fmt.Println("\n\n\033[1;33mCkeck additional plugins via content? (passiv-detection*) (y/n)\033[0m")
+	if utils.GetUserInputYesNo() {
+		missingPlugins := passivDetector.FindPluginsInContent(wpURL, pluginsFoundOnTarget, useRandomUserAgent, rateLimit)
+		// Append the missing plugins to the pluginsFoundOnTarget slice
+		pluginsFoundOnTarget = append(pluginsFoundOnTarget, missingPlugins...)
+	}
 
 	printManager.PrintResult(pluginsFoundOnTarget)
 
@@ -152,9 +152,7 @@ func getPluginSlugList() []string {
 	pluginSlugList := []string{}
 	if fileManager.CheckIfSaveFileExists(fileName) {
 		fmt.Println("\033[1;33mSave file found - should i use it? (y/n)\033[0m")
-		reader := bufio.NewReader(os.Stdin)
-		answer, _ := reader.ReadString('\n')
-		if answer == "y\n" {
+		if utils.GetUserInputYesNo() {
 			pluginSlugList = pluginSlugLoader.FetchPluginSlugsFromFile(targetPluginTag)
 			usingPlaybookFromFile = true
 		} else {
