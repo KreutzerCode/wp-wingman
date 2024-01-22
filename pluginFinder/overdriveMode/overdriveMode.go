@@ -2,7 +2,9 @@ package overdriveMode
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
+	"time"
 	"wp-wingman/pluginVersion"
 	"wp-wingman/store"
 	"wp-wingman/types"
@@ -45,8 +47,8 @@ func worker(urlsToCheck <-chan string, resultsChannel chan<- types.PluginData, p
     }
 }
 
-func CheckPluginsInOverdriveMode(url string, pluginNameList []string, numberOfWorkers int, randomUserAgent bool, targetDetectionMode string) []types.PluginData {
-    pluginsFoundOnTarget := []types.PluginData{} // Initialize it here
+func CheckPluginsInOverdriveMode(url string, pluginNameList []string, numberOfWorkers int, randomUserAgent bool, targetDetectionMode string, rateLimit int) []types.PluginData {
+    pluginsFoundOnTarget := []types.PluginData{}
     urlsToCheck := pluginNameList
     numWorkers = numberOfWorkers
     listLength := len(urlsToCheck)
@@ -58,12 +60,21 @@ func CheckPluginsInOverdriveMode(url string, pluginNameList []string, numberOfWo
     useRandomUserAgent = randomUserAgent
     detectionMode = targetDetectionMode
 
+    var ticker *time.Ticker
+    if rateLimit > 0 {
+        ticker = time.NewTicker(time.Duration(rand.Intn(rateLimit)) * time.Millisecond)
+        defer ticker.Stop()
+    }
+
     for i := 0; i < numWorkers; i++ {
         go worker(urlsToCheckChannel, resultsChannel, &pluginsFoundOnTarget)
     }
 
     for _, pluginName := range urlsToCheck {
         waitGroup.Add(1)
+        if rateLimit > 0 {
+            <-ticker.C
+        }
         urlsToCheckChannel <- pluginName
     }
 

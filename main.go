@@ -27,7 +27,7 @@ var (
 	savePlaybook    bool
 	saveResult      bool
 )
-var rateLimit int = 1
+var rateLimit int = 0
 var workerCount int = 10
 var targetPluginTag string = "security"
 var useRandomUserAgent bool
@@ -163,12 +163,11 @@ func checkPluginsAvailability(url string, pluginNameList []string) []types.Plugi
 
 	var pluginsFoundOnTarget = []types.PluginData{}
 
-	pluginsFoundOnTarget = overdriveMode.CheckPluginsInOverdriveMode(url, pluginNameList, workerCount, useRandomUserAgent, "api")
+	pluginsFoundOnTarget = overdriveMode.CheckPluginsInOverdriveMode(url, pluginNameList, workerCount, useRandomUserAgent, "api", rateLimit)
 
 	fmt.Println("\n\n\033[1;33mCkeck additional plugins via content? (y/n)\033[0m")
 	if utils.GetUserInputYesNo() {
 		missingPlugins := passivDetector.FindPluginsInContent(wpURL, pluginsFoundOnTarget, useRandomUserAgent, rateLimit, workerCount)
-		// Append the missing plugins to the pluginsFoundOnTarget slice
 		pluginsFoundOnTarget = append(pluginsFoundOnTarget, missingPlugins...)
 	}
 
