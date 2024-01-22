@@ -92,17 +92,6 @@ func main() {
 	StartWingmanJob()
 }
 
-func determineMaxStringLength(list []string) int {
-	maxStringLength := 0
-	for _, pluginName := range list {
-		if len(pluginName) > maxStringLength {
-			maxStringLength = len(pluginName)
-		}
-	}
-
-	return maxStringLength
-}
-
 func StartWingmanJob() {
 	result := wordpressFinder.IsWordpressSite(wpURL, useRandomUserAgent)
 
@@ -115,7 +104,7 @@ func StartWingmanJob() {
 	fmt.Println("\033[1;32mWordPress site detected: " + wpURL + "\033[0m")
 
 	pluginNameList := getPluginSlugList()
-	store.MaxStringLength = determineMaxStringLength(pluginNameList)
+	store.MaxStringLength = utils.DetermineMaxStringLength(pluginNameList)
 
 	if savePlaybook && !usingPlaybookFromFile {
 		fileName := fmt.Sprintf("wp-wingman-%s.txt", targetPluginTag)

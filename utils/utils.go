@@ -114,3 +114,14 @@ func GetUserInputYesNo() bool {
         return false
     }
 }
+
+func DetermineMaxStringLength(list []string) int {
+	maxStringLength := 0
+	for _, pluginName := range list {
+		if len(pluginName) > maxStringLength {
+			maxStringLength = len(pluginName)
+		}
+	}
+
+	return maxStringLength
+}
