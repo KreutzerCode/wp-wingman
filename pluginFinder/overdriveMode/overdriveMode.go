@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 	"wp-wingman/pluginVersion"
-	"wp-wingman/store"
 	"wp-wingman/types"
 	"wp-wingman/utils"
 )
@@ -55,7 +54,7 @@ func CheckPluginsInOverdriveMode(url string, pluginNameList []string, numberOfWo
     var waitGroup sync.WaitGroup
     resultsChannel := make(chan types.PluginData, listLength)
     urlsToCheckChannel := make(chan string, listLength)
-    maxStringLength := store.MaxStringLength
+    maxStringLength := utils.DetermineMaxStringLength(urlsToCheck)
     wpURL = url
     useRandomUserAgent = randomUserAgent
     detectionMode = targetDetectionMode
