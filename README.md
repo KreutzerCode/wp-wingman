@@ -114,9 +114,9 @@ If you want to fetch all public plugins, you can add the all argument `-t all`. 
 
 #### Argument: `-r`
 
-**Important**: This argument is only available in normal mode (not in overdrive mode)
+**Important**: This argument will reset the used workers to **1**.
 
-With the -r argument, you can specify the number of seconds to wait before the next plugin slug is checked on the target system.
+With the -r argument, you can specify the number of seconds to wait before the next plugin slug is checked on the target system. The timeout is set randomly between *0* and *your entry*.
 
 ### Workers
 
