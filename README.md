@@ -16,10 +16,11 @@ The WordPress Plugin Scanner designed for identifying any plugins on WordPress s
 - Possibility to save the plugin slugs collected via the Wordpress API in a file.
 - Provides a summary and the option to save the results in a file.
 - Supports the parallel execution of plugin slug checks.
+- Passive mode for detecting unknown plugins in the web content of the target site.
 
 ## Functionality
 
-The Purpose of this devensive Penetation testing tool to check every installed Plugin on a target system. It utilizes the WordPress Plugins API to fetch plugin slugs based on a specified tag. And runs it against the target system. The user can specify optional arguments to change the plugin search or plugin check procedure.
+The Purpose of this devensive Penetation testing tool to check every installed Plugin on a target system. It utilizes the WordPress Plugins API to fetch plugin slugs based on a specified tag. And runs it against the target system. The user can specify optional arguments to change the plugin search or plugin check procedure. In addition, during the check, the user has the option of having the content of the target site checked for additional plugins, which are most likely to be premium or custom plugins.
 
 ## Intentions
 
