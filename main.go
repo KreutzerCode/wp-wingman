@@ -39,7 +39,7 @@ func init() {
 
     flagSet.StringVar(&wpURL, "u", "", "wordpress url")
     flagSet.StringVar(&tFlagArgument, "t", "", "wordpress plugin tag (default securtiy but read the docs)")
-    flagSet.StringVar(&rValue, "r", "", "rate limit on target (default 0-1s)")
+    flagSet.StringVar(&rValue, "r", "", "rate limit on target (default 0s)")
     flagSet.IntVar(&wFlagArgument, "w", 10, "number of workers to execute playbook (only available in overdrive mode) (default 10)")
     flagSet.BoolVar(&overdriveActive, "overdrive", false, "executes playbook with the boys (very aggressiv)")
     flagSet.BoolVar(&savePlaybook, "save-playbook", false, "save collected plugins in file")

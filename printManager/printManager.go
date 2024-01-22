@@ -10,7 +10,7 @@ func HelpMenu() {
     fmt.Println("\033[1;33mArguments:")
     fmt.Println("\t\033[1;31mrequired:\033[1;33m -u\t\t\twordpress url")
     fmt.Println("\t\033[1;34moptional:\033[1;33m -t\t\t\twordpress plugin tag (default security but read the docs)")
-    fmt.Println("\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0-1s)")
+    fmt.Println("\t\033[1;34moptional:\033[1;33m -r\t\t\trate limit on target (default 0s)")
     fmt.Println("\t\033[1;34moptional:\033[1;33m -w\t\t\tnumber of workers to execute playbook (only available in overdrive mode)")
     fmt.Println("\t\033[1;34moptional:\033[1;33m --overdrive\t\texecutes playbook with the boys (very aggressive)")
     fmt.Println("\t\033[1;34moptional:\033[1;33m --save-playbook\tsave collected plugins in file")
