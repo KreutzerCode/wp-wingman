@@ -16,7 +16,7 @@ The WordPress Plugin Scanner designed for identifying any plugins on WordPress s
 - Possibility to save the plugin slugs collected via the Wordpress API in a file.
 - Provides a summary and the option to save the results in a file.
 - Supports the parallel execution of plugin slug checks.
-- Passive mode for detecting unknown plugins in the web content of the target site.
+- Detecting unknown plugins in the web content of the target site.
 
 ## Functionality
 
