@@ -9,7 +9,6 @@ import (
 	"strings"
 	"wp-wingman/fileManager"
 	"wp-wingman/passivDetector"
-	"wp-wingman/pluginFinder/normalMode"
 	"wp-wingman/pluginFinder/overdriveMode"
 	"wp-wingman/pluginSlugLoader"
 	"wp-wingman/printManager"
@@ -66,6 +65,7 @@ func main() {
 		os.Exit(0)
 	}
 
+	//Todo anpassen
 	if rValue != "" && !overdriveActive {
 		rateLimit, _ = strconv.Atoi(rValue)
 		fmt.Printf("\033[1;32mSet rate limit to: %s\033[0m\n", rValue)
@@ -77,6 +77,7 @@ func main() {
 	}
 
 	if overdriveActive {
+		//todo anpassen
 		workerCount = wFlagArgument
 		if workerCount < 2 {
 			workerCount = 2
@@ -130,13 +131,6 @@ func StartWingmanJob() {
 
 	var pluginsFoundOnTarget = checkPluginsAvailability(wpURL, pluginNameList)
 
-	fmt.Println("\n\n\033[1;33mCkeck additional plugins via content? (passiv-detection*) (y/n)\033[0m")
-	if utils.GetUserInputYesNo() {
-		missingPlugins := passivDetector.FindPluginsInContent(wpURL, pluginsFoundOnTarget, useRandomUserAgent, rateLimit)
-		// Append the missing plugins to the pluginsFoundOnTarget slice
-		pluginsFoundOnTarget = append(pluginsFoundOnTarget, missingPlugins...)
-	}
-
 	printManager.PrintResult(pluginsFoundOnTarget)
 
 	if saveResult {
@@ -170,10 +164,13 @@ func checkPluginsAvailability(url string, pluginNameList []string) []types.Plugi
 
 	var pluginsFoundOnTarget = []types.PluginData{}
 
-	if overdriveActive {
-		pluginsFoundOnTarget = overdriveMode.CheckPluginsInOverdriveMode(url, pluginNameList, workerCount, useRandomUserAgent)
-	} else {
-		pluginsFoundOnTarget = normalMode.CheckPluginsInNormalMode(url, pluginNameList, useRandomUserAgent, rateLimit, "aggressive")
+	pluginsFoundOnTarget = overdriveMode.CheckPluginsInOverdriveMode(url, pluginNameList, workerCount, useRandomUserAgent, "api")
+
+	fmt.Println("\n\n\033[1;33mCkeck additional plugins via content? (y/n)\033[0m")
+	if utils.GetUserInputYesNo() {
+		missingPlugins := passivDetector.FindPluginsInContent(wpURL, pluginsFoundOnTarget, useRandomUserAgent, rateLimit, workerCount)
+		// Append the missing plugins to the pluginsFoundOnTarget slice
+		pluginsFoundOnTarget = append(pluginsFoundOnTarget, missingPlugins...)
 	}
 
 	return pluginsFoundOnTarget

@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-	"wp-wingman/pluginFinder/normalMode"
+	"wp-wingman/pluginFinder/overdriveMode"
 	"wp-wingman/types"
 )
 
-func FindPluginsInContent(url string, pluginsFoundWithAggressiveMode []types.PluginData, useRandomUserAgent bool, rateLimit int)[]types.PluginData {
+func FindPluginsInContent(url string, pluginsFoundWithAggressiveMode []types.PluginData, useRandomUserAgent bool, rateLimit int, workerCount int)[]types.PluginData {
 	uniqueMatches := findPluginsInContent(url)
 	missingPlugins := returnPluginsThatAreNotFoundAlready(uniqueMatches, pluginsFoundWithAggressiveMode)
-	return normalMode.CheckPluginsInNormalMode(url, missingPlugins, useRandomUserAgent, rateLimit, "passiv")
+	return overdriveMode.CheckPluginsInOverdriveMode(url, missingPlugins, workerCount, useRandomUserAgent, "content")
 }
 
 func returnPluginsThatAreNotFoundAlready(uniqueMatches map[string]bool, pluginsFoundWithAggressiveMode []types.PluginData)[]string {
