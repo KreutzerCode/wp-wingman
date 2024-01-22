@@ -75,7 +75,7 @@ __        ______   __        _____ _   _  ____ __  __    _    _   _
 Arguments:
         required: -u                    wordpress url
         optional: -t                    wordpress plugin tag (default securtiy)
-        optional: -r                    rate limit on target (default 0-1s)
+        optional: -r                    rate limit on target (default 0s)
         optional: -w                    number of workers to execute playbook (only available in overdrive mode) (default 10)
         optional: --overdrive           executes playbook with the boys (very aggressiv)
         optional: --save-playbook       save collected plugins in file

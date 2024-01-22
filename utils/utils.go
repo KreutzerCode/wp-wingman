@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -104,11 +105,12 @@ func TestUrlForAvailability(url string, useRandomUserAgent bool) bool {
 }
 
 func GetUserInputYesNo() bool {
-	reader := bufio.NewReader(os.Stdin)
-	answer, _ := reader.ReadString('\n')
-	if answer == "y\n" {
-		return true
-	} else {
-		return false
-	}
+    reader := bufio.NewReader(os.Stdin)
+    answer, _ := reader.ReadString('\n')
+    answer = strings.ToLower(strings.TrimSpace(answer))
+    if strings.HasPrefix(answer, "y") {
+        return true
+    } else {
+        return false
+    }
 }
