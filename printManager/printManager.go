@@ -38,9 +38,9 @@ func PrintResult(pluginsFoundOnTarget []types.PluginData) {
 	if len(pluginsFoundOnTarget) != 0 {
 		for _, pluginData := range pluginsFoundOnTarget {
 			if len(pluginData.Version) == 0 {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found]\033[0m\n", store.MaxStringLength, pluginData.Name)
+				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%s]\033[0m\n", store.MaxStringLength, pluginData.Name, pluginData.DetectionMethod)
 			} else {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found][%s]\033[0m\n", store.MaxStringLength, pluginData.Name, pluginData.Version)
+				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%s][%s]\033[0m\n", store.MaxStringLength, pluginData.Name, pluginData.DetectionMethod, pluginData.Version)
 			}
 		}
 

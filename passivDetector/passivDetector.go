@@ -12,7 +12,7 @@ import (
 func FindPluginsInContent(url string, pluginsFoundWithAggressiveMode []types.PluginData, useRandomUserAgent bool, rateLimit int)[]types.PluginData {
 	uniqueMatches := findPluginsInContent(url)
 	missingPlugins := returnPluginsThatAreNotFoundAlready(uniqueMatches, pluginsFoundWithAggressiveMode)
-	return normalMode.CheckPluginsInNormalMode(url, missingPlugins, useRandomUserAgent, rateLimit)
+	return normalMode.CheckPluginsInNormalMode(url, missingPlugins, useRandomUserAgent, rateLimit, "passiv")
 }
 
 func returnPluginsThatAreNotFoundAlready(uniqueMatches map[string]bool, pluginsFoundWithAggressiveMode []types.PluginData)[]string {

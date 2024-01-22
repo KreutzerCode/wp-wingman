@@ -31,7 +31,7 @@ func ReturnPluginVersion(url string, pluginsPrefix string, pluginName string, ra
 	return version, versionFound
 }
 
-func CheckPluginsInNormalMode(url string, pluginNameList []string, randomUserAgent bool, rateLimit int) []types.PluginData {
+func CheckPluginsInNormalMode(url string, pluginNameList []string, randomUserAgent bool, rateLimit int, detectionMode string) []types.PluginData {
 	pluginsPrefix := "wp-content/plugins"
 	pluginsFoundOnTarget := []types.PluginData{}
 	maxStringLength := store.MaxStringLength
@@ -58,12 +58,12 @@ func CheckPluginsInNormalMode(url string, pluginNameList []string, randomUserAge
 
 		versionData, found := ReturnPluginVersion(url, pluginsPrefix, pluginName, randomUserAgent, maxStringLength)
 		if found {
-			fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found][%s]\033\n", maxStringLength, pluginName, versionData.Number)
+			fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found][%s][%s]\033\n", maxStringLength, pluginName, detectionMode, versionData.Number)
 		} else {
-			fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found]\033\n", maxStringLength, pluginName)
+			fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[found][%s]\033\n", maxStringLength, pluginName, detectionMode)
 		}
 
-		pluginsFoundOnTarget = append(pluginsFoundOnTarget, types.PluginData{Name: pluginName, Version: versionData.Number, Found: true})
+		pluginsFoundOnTarget = append(pluginsFoundOnTarget, types.PluginData{Name: pluginName, Version: versionData.Number, DetectionMethod: detectionMode, Found: true})
 	}
 
 	return pluginsFoundOnTarget

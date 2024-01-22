@@ -173,7 +173,7 @@ func checkPluginsAvailability(url string, pluginNameList []string) []types.Plugi
 	if overdriveActive {
 		pluginsFoundOnTarget = overdriveMode.CheckPluginsInOverdriveMode(url, pluginNameList, workerCount, useRandomUserAgent)
 	} else {
-		pluginsFoundOnTarget = normalMode.CheckPluginsInNormalMode(url, pluginNameList, useRandomUserAgent, rateLimit)
+		pluginsFoundOnTarget = normalMode.CheckPluginsInNormalMode(url, pluginNameList, useRandomUserAgent, rateLimit, "aggressive")
 	}
 
 	return pluginsFoundOnTarget

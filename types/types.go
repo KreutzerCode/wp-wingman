@@ -1,9 +1,10 @@
 package types
 
 type PluginData struct {
-	Name    string
-	Version string
-	Found   bool
+	Name    		string
+	Version 		string
+	DetectionMethod string
+	Found   		bool
 }
 
 type PluginInfo struct {

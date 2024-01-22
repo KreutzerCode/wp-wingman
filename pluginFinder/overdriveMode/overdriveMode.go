@@ -13,6 +13,7 @@ var pluginsFoundOnTarget []types.PluginData
 var wpURL string
 var useRandomUserAgent bool
 var numWorkers = 10
+var detectionMode = "aggressive"
 
 func checkURL(pluginName string, resultsChannel chan<- types.PluginData) {
 	pluginsPrefix := "wp-content/plugins"
@@ -33,7 +34,7 @@ func checkURL(pluginName string, resultsChannel chan<- types.PluginData) {
 		if found {
 			pluginData.Version = versionData.Number
 		}
-		pluginsFoundOnTarget = append(pluginsFoundOnTarget, types.PluginData{Name: pluginName, Version: versionData.Number, Found: true})
+		pluginsFoundOnTarget = append(pluginsFoundOnTarget, types.PluginData{Name: pluginName, Version: versionData.Number, DetectionMethod: detectionMode, Found: true})
 	}
 
 	resultsChannel <- pluginData
@@ -79,9 +80,9 @@ func CheckPluginsInOverdriveMode(url string, pluginNameList []string, numberOfWo
 			fmt.Printf("\033[K\033[1;34m%-*s\033[0m \033[1;34m[%d/%d][ok]\033[0m\r", maxStringLength, pluginData.Name, index, listLength)
 		} else {
 			if pluginData.Version != "" {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%d/%d][found][%s]\033\n", maxStringLength, pluginData.Name, index, listLength, pluginData.Version)
+				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%d/%d][found][%s][%s]\033\n", maxStringLength, pluginData.Name, index, listLength, detectionMode, pluginData.Version)
 			} else {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%d/%d][found]\033\n", maxStringLength, pluginData.Name, index, listLength)
+				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%d/%d][found][%s]\033\n", maxStringLength, pluginData.Name, index, listLength, detectionMode)
 			}
 		}
 
