@@ -130,7 +130,6 @@ func DetermineMaxStringLength(list []string) int {
 func ReturnNamesFromPluginsArray(plugins []types.PluginData)[]string {
 	var names []string
 
-	// Iterate over the plugins array and extract the names
 	for _, plugin := range plugins {
 		names = append(names, plugin.Name)
 	}
