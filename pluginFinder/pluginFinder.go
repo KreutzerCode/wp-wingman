@@ -46,7 +46,7 @@ func worker(urlsToCheck <-chan string, resultsChannel chan<- types.PluginData, p
     }
 }
 
-func CheckPluginsInOverdriveMode(url string, pluginNameList []string, numberOfWorkers int, randomUserAgent bool, targetDetectionMode string, rateLimit int) []types.PluginData {
+func CheckPluginSlugsOnTarget(url string, pluginNameList []string, numberOfWorkers int, randomUserAgent bool, targetDetectionMode string, rateLimit int) []types.PluginData {
     pluginsFoundOnTarget := []types.PluginData{}
     urlsToCheck := pluginNameList
     numWorkers = numberOfWorkers

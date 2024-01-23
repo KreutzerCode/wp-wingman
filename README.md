@@ -76,8 +76,7 @@ Arguments:
         required: -u                    wordpress url
         optional: -t                    wordpress plugin tag (default securtiy)
         optional: -r                    rate limit on target (default 0s)
-        optional: -w                    number of workers to execute playbook (only available in overdrive mode) (default 10)
-        optional: --overdrive           executes playbook with the boys (very aggressiv)
+        optional: -w                    number of workers to execute playbook (default 10)
         optional: --save-playbook       save collected plugins in file
         optional: --save-result         save plugins found on target in file
 
@@ -114,7 +113,7 @@ If you want to fetch all public plugins, you can add the all argument `-t all`. 
 
 #### Argument: `-r`
 
-**Important**: This argument will reset the used workers to **1**.
+**Important**: This argument will reset the used *workers* to **1**.
 
 With the -r argument, you can specify the number of seconds to wait before the next plugin slug is checked on the target system. The timeout is set randomly between *0* and *your entry*.
 
@@ -122,22 +121,9 @@ With the -r argument, you can specify the number of seconds to wait before the n
 
 #### Argument: `-w`
 
-**Important**: This argument is only valid in combination the `--overdrive` flag
-
 With the -w argument, you can specify the number of workers that process the playbook in parallel.
 
-- Min Value: 2
-- Min Value: 100
-
-### Overdrive
-
-#### Argument: `--overdrive`
-
-**Important**: This mode is very aggressiv
-
-In overdrive mode, the wingman gathers his boys to work on the playbook in parallel. Please note that this can place an additional load on your and the target system.
-
-**Tip**: use in combination with `-w` to specify number of workers
+- Min Value: 1
 
 ### Save Playbook
 

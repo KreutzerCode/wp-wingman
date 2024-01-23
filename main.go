@@ -23,7 +23,6 @@ var (
 	rValue          string
 	tFlagArgument   string
 	wFlagArgument   int
-	overdriveActive bool
 	savePlaybook    bool
 	saveResult      bool
 )
@@ -40,8 +39,7 @@ func init() {
     flagSet.StringVar(&wpURL, "u", "", "wordpress url")
     flagSet.StringVar(&tFlagArgument, "t", "", "wordpress plugin tag (default securtiy but read the docs)")
     flagSet.StringVar(&rValue, "r", "", "rate limit on target (default 0s)")
-    flagSet.IntVar(&wFlagArgument, "w", 10, "number of workers to execute playbook (only available in overdrive mode) (default 10)")
-    flagSet.BoolVar(&overdriveActive, "overdrive", false, "executes playbook with the boys (very aggressiv)")
+    flagSet.IntVar(&wFlagArgument, "w", 10, "number of workers to execute playbook (default 10)")
     flagSet.BoolVar(&savePlaybook, "save-playbook", false, "save collected plugins in file")
     flagSet.BoolVar(&saveResult, "save-result", false, "save plugins found on target in file")
     flagSet.BoolVar(&useRandomUserAgent, "user-agent", false, "use random user agent for every request")
@@ -152,7 +150,7 @@ func checkPluginsAvailability(url string, pluginNameList []string) []types.Plugi
 
 	var pluginsFoundOnTarget = []types.PluginData{}
 
-	pluginsFoundOnTarget = pluginFinder.CheckPluginsInOverdriveMode(url, pluginNameList, workerCount, useRandomUserAgent, "api", rateLimit)
+	pluginsFoundOnTarget = pluginFinder.CheckPluginSlugsOnTarget(url, pluginNameList, workerCount, useRandomUserAgent, "api", rateLimit)
 
 	fmt.Println("\n\n\033[1;33mCkeck additional plugins via content? (y/n)\033[0m")
 	if utils.GetUserInputYesNo() {
