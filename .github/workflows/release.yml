@@ -18,7 +18,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build Binary for Linux
-      run: GOOS=linux GOARCH=amd64 go build -o wp-wingman-${GOOS}-${GOARCH} main.go
+      run: GOOS=linux GOARCH=amd64 go build -o wp-wingman-linux-amd64 main.go
 
     - name: Upload assets to a Release
       uses: AButler/upload-release-assets@v3.0
