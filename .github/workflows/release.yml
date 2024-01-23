@@ -23,5 +23,5 @@ jobs:
     - name: Upload assets to a Release
       uses: AButler/upload-release-assets@v3.0
       with:
-        files: "wp-wingman*"
+        files: "wp-wingman-linux-amd64"
         repo-token: ${{ secrets.GITHUB_TOKEN }}
