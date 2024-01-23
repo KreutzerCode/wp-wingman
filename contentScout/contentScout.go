@@ -1,4 +1,4 @@
-package passivDetector
+package contentScout
 
 import (
 	"io"
@@ -18,20 +18,17 @@ func FindPluginsInContent(url string, pluginsFoundWithAggressiveMode []types.Plu
 func returnPluginsThatAreNotFoundAlready(uniqueMatches map[string]bool, pluginsFoundWithAggressiveMode []types.PluginData)[]string {
 	missingPlugins := []string{}
 
-    // Print each unique, stripped match
     pluginDataMap := make(map[string]bool)
     for _, pluginData := range pluginsFoundWithAggressiveMode {
         pluginDataMap[pluginData.Name] = true
     }
 
-    // Add each unique, stripped match that is not present in the PluginData list to the missingPlugins slice
     for match := range uniqueMatches {
         if !pluginDataMap[match] {
 			missingPlugins = append(missingPlugins, match)
         }
     }
 
-    // Return the slice of missing plugins
     return missingPlugins
 }
 

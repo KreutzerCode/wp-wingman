@@ -7,8 +7,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"wp-wingman/contentScout"
 	"wp-wingman/fileManager"
-	"wp-wingman/passivDetector"
 	"wp-wingman/pluginFinder"
 	"wp-wingman/pluginSlugLoader"
 	"wp-wingman/printManager"
@@ -154,7 +154,7 @@ func checkPluginsAvailability(url string, pluginNameList []string) []types.Plugi
 
 	fmt.Println("\n\n\033[1;33mCkeck additional plugins via content? (y/n)\033[0m")
 	if utils.GetUserInputYesNo() {
-		missingPlugins := passivDetector.FindPluginsInContent(wpURL, pluginsFoundOnTarget, useRandomUserAgent, rateLimit, workerCount)
+		missingPlugins := contentScout.FindPluginsInContent(wpURL, pluginsFoundOnTarget, useRandomUserAgent, rateLimit, workerCount)
 		pluginsFoundOnTarget = append(pluginsFoundOnTarget, missingPlugins...)
 	}
 
