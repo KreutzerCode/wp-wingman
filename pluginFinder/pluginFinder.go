@@ -17,8 +17,7 @@ var detectionMode string
 
 func checkURL(pluginName string, resultsChannel chan<- types.PluginData, pluginsFoundOnTarget *[]types.PluginData) {
     pluginsPrefix := "wp-content/plugins"
-    pluginSuffix := "readme.txt"
-    result, err := utils.FetchReadme(fmt.Sprintf("%s/%s/%s/%s", wpURL, pluginsPrefix, pluginName, pluginSuffix), useRandomUserAgent)
+    pluginIndexPhpFileExists, err := utils.DoesRemoteFileExist(fmt.Sprintf("%s/%s/%s/%s.php", wpURL, pluginsPrefix, pluginName, pluginName), useRandomUserAgent)
 
     if err != nil {
         fmt.Println("\033[1;31mError checking Plugin: "+pluginName+"\033[0m\n", err)
@@ -28,15 +27,20 @@ func checkURL(pluginName string, resultsChannel chan<- types.PluginData, plugins
     pluginData := types.PluginData{}
     pluginData.Name = pluginName
 
-    if content, ok := result.(string); ok {
-        pluginData.Found = true
-        versionData, found := pluginVersion.GetPluginVersion(content)
-        if found {
-            pluginData.Version = versionData.Number
-        }
-        *pluginsFoundOnTarget = append(*pluginsFoundOnTarget, types.PluginData{Name: pluginName, Version: versionData.Number, DetectionMethod: detectionMode, Found: true})
+    if !pluginIndexPhpFileExists {
+        resultsChannel <- pluginData
+        return
     }
 
+    pluginData.Found = true
+
+    versionData, found := returnPluginVersion(wpURL, pluginsPrefix, pluginName, useRandomUserAgent)
+    if found {
+        pluginData.Version = versionData.Number
+    }
+
+    *pluginsFoundOnTarget = append(*pluginsFoundOnTarget, types.PluginData{Name: pluginName, Version: versionData.Number, DetectionMethod: detectionMode, Found: true})
+    
     resultsChannel <- pluginData
 }
 
@@ -101,4 +105,24 @@ func CheckPluginSlugsOnTarget(url string, pluginNameList []string, numberOfWorke
     }
 
     return pluginsFoundOnTarget
+}
+
+func returnPluginVersion(url string, pluginsPrefix string, pluginName string, randomUserAgent bool) (types.VersionNumber, bool){
+	version := types.VersionNumber{}
+	versionFound := false
+	result, err := utils.FetchReadme(fmt.Sprintf("%s/%s/%s/%s", url, pluginsPrefix, pluginName, "readme.txt"), randomUserAgent)
+
+	if err != nil {
+		return version, versionFound
+	}
+
+	if content, ok := result.(string); ok {
+		versionData, found := pluginVersion.GetPluginVersion(content)
+		if found {
+			version = versionData
+			versionFound = true
+		}
+	}
+
+	return version, versionFound
 }
