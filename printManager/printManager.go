@@ -2,7 +2,6 @@ package printManager
 
 import (
 	"fmt"
-	"wp-wingman/store"
 	"wp-wingman/types"
 )
 
@@ -30,16 +29,16 @@ func PrintLogo() {
 		"\033[0m")
 }
 
-func PrintResult(pluginsFoundOnTarget []types.PluginData) {
+func PrintResult(pluginsFoundOnTarget []types.PluginData, maxNameLength int) {
 	fmt.Println("\n\n\n\033[1;32mDone.\n\033[0m")
 	fmt.Println("\033[1;32mSummary:\n\033[0m")
 
 	if len(pluginsFoundOnTarget) != 0 {
 		for _, pluginData := range pluginsFoundOnTarget {
 			if len(pluginData.Version) == 0 {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%s]\033[0m\n", store.MaxStringLength, pluginData.Name, pluginData.DetectionMethod)
+				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%s]\033[0m\n", maxNameLength, pluginData.Name, pluginData.DetectionMethod)
 			} else {
-				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%s][%s]\033[0m\n", store.MaxStringLength, pluginData.Name, pluginData.DetectionMethod, pluginData.Version)
+				fmt.Printf("\033[1;31m%-*s\033[0m \033[1;31m[%s][%s]\033[0m\n", maxNameLength, pluginData.Name, pluginData.DetectionMethod, pluginData.Version)
 			}
 		}
 

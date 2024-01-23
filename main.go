@@ -12,7 +12,6 @@ import (
 	"wp-wingman/pluginFinder"
 	"wp-wingman/pluginSlugLoader"
 	"wp-wingman/printManager"
-	"wp-wingman/store"
 	"wp-wingman/types"
 	"wp-wingman/utils"
 	"wp-wingman/wordpressFinder"
@@ -102,7 +101,6 @@ func StartWingmanJob() {
 	fmt.Println("\033[1;32mWordPress site detected: " + wpURL + "\033[0m")
 
 	pluginNameList := getPluginSlugList()
-	store.MaxStringLength = utils.DetermineMaxStringLength(pluginNameList)
 
 	if savePlaybook && !usingPlaybookFromFile {
 		fileName := fmt.Sprintf("wp-wingman-%s.txt", targetPluginTag)
@@ -116,8 +114,8 @@ func StartWingmanJob() {
 	}
 
 	var pluginsFoundOnTarget = checkPluginsAvailability(wpURL, pluginNameList)
-
-	printManager.PrintResult(pluginsFoundOnTarget)
+	maxStringLength := utils.DetermineMaxStringLength(utils.ReturnNamesFromPluginsArray(pluginsFoundOnTarget))
+	printManager.PrintResult(pluginsFoundOnTarget, maxStringLength)
 
 	if saveResult {
 		fileName := strings.Split(strings.Split(wpURL, "//")[1], "/")[0]

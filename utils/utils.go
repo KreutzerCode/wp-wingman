@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"wp-wingman/types"
 )
 
 var userAgents = []string{
@@ -124,4 +125,15 @@ func DetermineMaxStringLength(list []string) int {
 	}
 
 	return maxStringLength
+}
+
+func ReturnNamesFromPluginsArray(plugins []types.PluginData)[]string {
+	var names []string
+
+	// Iterate over the plugins array and extract the names
+	for _, plugin := range plugins {
+		names = append(names, plugin.Name)
+	}
+
+	return names
 }
