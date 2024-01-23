@@ -10,18 +10,18 @@ jobs:
 
     steps:
     - name: Set up Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v4
       with:
-        go-version: 1.16
+        go-version: 1.20
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build Binary for Linux
-      run: GOOS=linux GOARCH=amd64 go build -o wp-wingman main.go
+      run: GOOS=linux GOARCH=amd64 go build -o wp-wingman-${GOOS}-${GOARCH} main.go
 
     - name: Upload assets to a Release
       uses: AButler/upload-release-assets@v3.0
       with:
-        files: "wp-wingman"
+        files: "wp-wingman*"
         repo-token: ${{ secrets.GITHUB_TOKEN }}
