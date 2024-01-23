@@ -9,7 +9,7 @@ import (
 	"strings"
 	"wp-wingman/fileManager"
 	"wp-wingman/passivDetector"
-	"wp-wingman/pluginFinder/overdriveMode"
+	"wp-wingman/pluginFinder"
 	"wp-wingman/pluginSlugLoader"
 	"wp-wingman/printManager"
 	"wp-wingman/store"
@@ -152,7 +152,7 @@ func checkPluginsAvailability(url string, pluginNameList []string) []types.Plugi
 
 	var pluginsFoundOnTarget = []types.PluginData{}
 
-	pluginsFoundOnTarget = overdriveMode.CheckPluginsInOverdriveMode(url, pluginNameList, workerCount, useRandomUserAgent, "api", rateLimit)
+	pluginsFoundOnTarget = pluginFinder.CheckPluginsInOverdriveMode(url, pluginNameList, workerCount, useRandomUserAgent, "api", rateLimit)
 
 	fmt.Println("\n\n\033[1;33mCkeck additional plugins via content? (y/n)\033[0m")
 	if utils.GetUserInputYesNo() {

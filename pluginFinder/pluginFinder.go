@@ -1,4 +1,4 @@
-package overdriveMode
+package pluginFinder
 
 import (
 	"fmt"
